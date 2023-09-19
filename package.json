@@ -1,0 +1,23 @@
+{
+  "name": "toxmo-backend",
+  "version": "1.0.0",
+  "description": "Toxmo stands for Together Explore More Savings More Fun. It is a social commerce platform where people enjoy interactive and fun online shopping experiences while obtaining great value.👬💰😃",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2"
+  }
+}
