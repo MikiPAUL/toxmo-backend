@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PROD_DB_URL")
+}
+
+enum Gender{
+  MALE 
+  FEMALE
+  OTHERS
+}
+
+model User{
+  id Int @id @default(autoincrement())
+  username String
+  otp Int?
+  otp_expire_at DateTime?
+  avatar Bytes?
+  address String?
+  phone_number String @unique
+  gender Gender?
+  teams Team[]
+  orders Order[]
+  sessionToken String?
+  tokenExpireAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category{
+  id Int @id @default(autoincrement())
+  categoryName String
+  products Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product{
+  id Int @id @default(autoincrement())
+  name String 
+  price Float
+  category Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  other_details Json?
+  orders Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TeamStatus{
+  teamConfirmed
+  teamExpired
+}
+
+model Team{
+  id Int @id @default(autoincrement())
+  description String?
+  code String
+  partner User? @relation(fields: [partnerId], references: [id])
+  partnerId Int?
+  teamLink String?
+  teamStatus TeamStatus
+  order Order?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PurchaseType{
+  individual
+  team
+}
+
+enum OrderStatus{
+  orderPlaced
+  productShipped
+  productDelivered
+  orderExpired
+}
+
+model Order{
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  product Product @relation(fields: [productId], references: [id])
+  productId Int
+  purchaseType PurchaseType @default(team)
+  orderStatus OrderStatus @default(orderPlaced)
+  team Team? @relation(fields: [teamId], references: [id])
+  teamId Int? @unique
+  expireAt DateTime @default(dbgenerated("now() + interval '1' day"))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
