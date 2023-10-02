@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("PROD_DB_URL")
+  url      = env("LOCAL_DB_URL")
 }
 
 enum Gender{
@@ -58,11 +58,11 @@ enum TeamStatus{
 model Team{
   id Int @id @default(autoincrement())
   description String?
-  code String
+  code String?
   partner User? @relation(fields: [partnerId], references: [id])
   partnerId Int?
   teamLink String?
-  teamStatus TeamStatus
+  teamStatus TeamStatus @default(teamConfirmed)
   order Order?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -75,6 +75,7 @@ enum PurchaseType{
 
 enum OrderStatus{
   orderPlaced
+  teamJoined
   productShipped
   productDelivered
   orderExpired

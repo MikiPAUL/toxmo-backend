@@ -7,6 +7,13 @@ const userParams = z.object({
     })
 })
 
+const profileParams = z.object({
+    user: z.object({
+        id: z.number()
+    })
+})
+
 export {
-    userParams
+    userParams,
+    profileParams
 }

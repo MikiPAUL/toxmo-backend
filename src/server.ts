@@ -5,13 +5,17 @@ import session from 'express-session';
 
 const app = express()
 
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
+    cookie: { 
+        maxAge: 1000 * 60 * 30,
+        path    : '/',
+    },
 }))
+app.use(bodyParser.json())
+
 app.use(router)
 
 app.listen(3000, () => {
