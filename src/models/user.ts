@@ -3,9 +3,10 @@ import { PrismaClient, Gender } from '@prisma/client'
 const prisma = new PrismaClient().$extends({
   model: {
     user: {
-      async findUser(username: string, phone_number: string) {
+      async findUser(username: string, phone_number: string, id: number) {
         return prisma.user.findUnique({
           where: {
+            id: id,
             username: username,
             phone_number: phone_number,
           },
@@ -30,9 +31,6 @@ const prisma = new PrismaClient().$extends({
             where: {
                 phone_number: phone_number,
                 otp: parseInt(otp)
-            },
-            select: {
-                otp_expire_at: true
             }
         })
         return ((!user || !user.otp_expire_at) ? false : (user.otp_expire_at > new Date()))
