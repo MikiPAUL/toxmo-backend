@@ -3,7 +3,7 @@ import router from './routes/index'
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({path:__dirname+'/../.env'});
 
 const app = express()
 
