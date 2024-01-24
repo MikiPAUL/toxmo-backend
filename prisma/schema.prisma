@@ -7,91 +7,137 @@ datasource db {
   url      = env("LOCAL_DB_URL")
 }
 
-enum Gender{
-  MALE 
+model User {
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  otp           Int?
+  otpExpireAt   DateTime?
+  avatar        Bytes?
+  address       String?
+  phoneNumber   String         @unique
+  gender        Gender?
+  sessionToken  String?
+  tokenExpireAt DateTime?
+  orders        Order[]
+  seller        Seller?
+  teamMembers   TeamMember[]
+  followers     Relationship[] @relation("follower")
+  followings    Relationship[] @relation("following")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Seller {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @unique
+  brandName     String
+  active        Boolean   @default(false)
+  bio           String
+  category      String
+  contactNumber String
+  email         String
+  storeAddress  String
+  type          String
+  products      Product[]
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Relationship {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  following   User     @relation("following", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id           Int       @id @default(autoincrement())
+  categoryName String
+  products     Product[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String
+  price         Float
+  categoryId    Int
+  otherDetails  Json?
+  stockQuantity Int
+  imageLink     String?
+  teamPrice     Float
+  teamSize      Int
+  sellerId      Int
+  teams         Team[]
+  orders        Order[]
+  category      Category @relation(fields: [categoryId], references: [id])
+  seller        Seller   @relation(fields: [sellerId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Team {
+  id          Int          @id @default(autoincrement())
+  description String?
+  code        String?
+  teamLink    String?
+  expireAt    DateTime     @default(dbgenerated("(now() + '30 minutes'::interval minute)"))
+  productId   Int?
+  teamStatus  TeamStatus   @default(teamCreated)
+  teamMembers TeamMember[]
+  Product     Product?     @relation(fields: [productId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model TeamMember {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  userId    Int
+  team      Team     @relation(fields: [teamId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  productId    Int?
+  quantity     Int          @default(1)
+  totalPrice   Float
+  purchaseType PurchaseType @default(team)
+  orderStatus  OrderStatus  @default(orderPlaced)
+  user         User         @relation(fields: [userId], references: [id])
+  Product      Product?     @relation(fields: [productId], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+enum Gender {
+  MALE
   FEMALE
   OTHERS
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  username String
-  otp Int?
-  otp_expire_at DateTime?
-  avatar Bytes?
-  address String?
-  phone_number String @unique
-  gender Gender?
-  teams Team[]
-  orders Order[]
-  sessionToken String?
-  tokenExpireAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Category{
-  id Int @id @default(autoincrement())
-  categoryName String
-  products Product[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Product{
-  id Int @id @default(autoincrement())
-  name String 
-  price Float
-  category Category @relation(fields: [categoryId], references: [id])
-  categoryId Int
-  other_details Json?
-  orders Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum TeamStatus{
+enum TeamStatus {
+  teamCreated
   teamConfirmed
   teamExpired
 }
 
-model Team{
-  id Int @id @default(autoincrement())
-  description String?
-  code String?
-  partner User? @relation(fields: [partnerId], references: [id])
-  partnerId Int?
-  teamLink String?
-  teamStatus TeamStatus @default(teamConfirmed)
-  order Order?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum PurchaseType{
+enum PurchaseType {
   individual
   team
 }
 
-enum OrderStatus{
+enum OrderStatus {
   orderPlaced
-  teamJoined
   productShipped
   productDelivered
-  orderExpired
-}
-
-model Order{
-  id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id])
-  userId Int
-  product Product @relation(fields: [productId], references: [id])
-  productId Int
-  purchaseType PurchaseType @default(team)
-  orderStatus OrderStatus @default(orderPlaced)
-  team Team? @relation(fields: [teamId], references: [id])
-  teamId Int? @unique
-  expireAt DateTime @default(dbgenerated("now() + interval '1' day"))
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

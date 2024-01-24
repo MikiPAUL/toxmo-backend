@@ -1,4 +1,4 @@
-import {z} from 'zod'
+import { z } from 'zod'
 
 const formTeamParams = z.object({
     team: z.object({
@@ -7,6 +7,13 @@ const formTeamParams = z.object({
     })
 })
 
+const createTeamParams = z.object({
+    team: z.object({
+        productId: z.number()
+    })
+})
+
 export {
-    formTeamParams
+    formTeamParams,
+    createTeamParams
 }

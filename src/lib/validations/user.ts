@@ -1,9 +1,9 @@
-import {z} from 'zod'
+import { z } from 'zod'
 
 const userParams = z.object({
     user: z.object({
         username: z.string(),
-        phone_number: z.string()
+        phoneNumber: z.string()
     })
 })
 
@@ -13,7 +13,21 @@ const profileParams = z.object({
     })
 })
 
+const sellerParams = z.object({
+    seller: z.object({
+        brandName: z.string(),
+        bio: z.string(),
+        active: z.boolean(),
+        contactNumber: z.string(),
+        storeAddress: z.string(),
+        type: z.string(),
+        category: z.string(),
+        email: z.string()
+    })
+})
+
 export {
     userParams,
-    profileParams
+    profileParams,
+    sellerParams
 }
