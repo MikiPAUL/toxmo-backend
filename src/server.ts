@@ -2,7 +2,7 @@ import express from 'express';
 import router from './routes/index'
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-dotenv.config({ path: __dirname + '/../.env' });
+dotenv.config({ path: __dirname + '/../.env', debug: true });
 
 const app = express()
 
