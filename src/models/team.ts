@@ -1,28 +1,45 @@
-import { PrismaClient, OrderStatus } from "@prisma/client";
+import { PrismaClient, TeamStatus } from "@prisma/client";
 
 const prisma = new PrismaClient().$extends({
     model: {
         team: {
-            async formTeam(order_id: number, partner_id: number){
-                return prisma.order.update({
-                    data:{
-                        team: {
-                            create: { partnerId: partner_id }
-                        }
-                    },
-                    where: {
-                        id: order_id
+            async createTeam(productId: number) {
+                return prisma.team.create({
+                    data: {
+                        productId
                     }
                 })
             },
-            async formedTeamList(product_id: number){
-                return prisma.order.findMany({
+            async teamMembersCount(id: number) {
+                return prisma.team.findUnique({
                     where: {
-                        productId: product_id,
-                        orderStatus: OrderStatus.orderPlaced,
-                        expireAt: {
-                            lte: new Date()
+                        id
+                    },
+                    include: {
+                        _count: {
+                            select: { teamMembers: true }
                         }
+                    }
+                });
+            },
+            async changeTeamStatus(id: number, status: TeamStatus) {
+                return prisma.team.update({
+                    where: {
+                        id
+                    },
+                    data: {
+                        teamStatus: status
+                    }
+                })
+            },
+            async existingTeamList(productId: number) {
+                return prisma.team.findMany({
+                    where: {
+                        productId,
+                        expireAt: {
+                            gte: new Date()
+                        },
+                        teamStatus: TeamStatus.teamCreated
                     }
                 })
             }

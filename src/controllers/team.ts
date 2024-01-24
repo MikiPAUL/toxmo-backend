@@ -1,32 +1,80 @@
 import { Request, Response } from "express";
-import { formTeamParams } from "../lib/validations/team";
+import { createTeamParams } from "../lib/validations/team";
 import prisma from "../models/team";
+import teamMemberPrisma from "../models/TeamMember";
+import currentUser from "../lib/utils/getCurrentUser";
 
-const formTeam = async (req: Request, res: Response) => {
-    const parsedParams = formTeamParams.safeParse(req.body)
+const createTeam = async (req: Request, res: Response) => {
+    try {
+        const user = await currentUser(req);
+        const parsedParams = createTeamParams.safeParse(req.body);
+        if (!parsedParams.success) throw new Error('Unable to create team')
 
-    if(!parsedParams.success){
-        return res.status(422).json({error: "Unable to form a team"})
+        const { productId } = parsedParams.data.team;
+
+        const { newTeam, newTeamMember } = await prisma.$transaction(async (prisma) => {
+            const newTeam = await prisma.team.createTeam(productId);
+            const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, user.id);
+
+            return { newTeam, newTeamMember };
+        });
+
+        if (!newTeam) throw new Error('Unable to create team')
+        else if (!newTeamMember) throw new Error('Unable to join team')
+
+        const teamDetails = await prisma.team.findUnique({
+            where: {
+                id: newTeam.id
+            },
+            include: {
+                teamMembers: true
+            }
+        })
+        res.status(200).json({ team: teamDetails })
     }
-    const {order_id, partner_id} = parsedParams.data.team
-    const order = await prisma.order.findUnique({ where: { id: order_id }})
-    if(!order){
-        return res.status(404).json({error: "Unable to find the order"})
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e });
+        else res.status(422).json({ error: 'Unable to join team' })
     }
-    const team = await prisma.team.formTeam(order_id, partner_id)
-    if(!team){
-        return res.status(422).json({error: "Unable to form team"})
-    }
-    res.json(team)
 }
 
 const existingTeamList = async (req: Request, res: Response) => {
-    const product_id = parseInt(req.params.id);
-    const teamListing = await prisma.team.formedTeamList(product_id)
-    res.json({existingTeam: teamListing})
+    try {
+        if (!req.query.productId) throw new Error('Unable to fetch team list');
+        const productId = req.query.productId as string;
+
+        if (!productId) throw new Error('Something went wrong')
+
+        const teams = await prisma.team.existingTeamList(parseInt(productId));
+
+        res.status(200).json({ teams })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to fetch team list' })
+    }
+}
+
+const showTeam = async (req: Request, res: Response) => {
+    try {
+        const teamId = req.params.id as string;
+
+        if (!teamId) throw new Error('Unable to fetch team details')
+
+        const team = await prisma.team.findUnique({
+            where: {
+                id: parseInt(teamId)
+            }
+        })
+        res.status(200).json({ team })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+    }
 }
 
 export {
-    formTeam,
+    createTeam,
+    showTeam,
     existingTeamList
 }

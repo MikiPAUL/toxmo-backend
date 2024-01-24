@@ -3,61 +3,82 @@ import { PrismaClient, Gender } from '@prisma/client'
 const prisma = new PrismaClient().$extends({
   model: {
     user: {
-      async findUser(username: string, phone_number: string, id: number) {
-        return prisma.user.findUnique({
+      async findUser(username: string, phoneNumber: string, id: number) {
+        return await prisma.user.findUnique({
           where: {
             id: id,
             username: username,
-            phone_number: phone_number,
+            phoneNumber: phoneNumber,
           },
+        })
+      },
+
+      async checkUserName(username: string, phoneNumber: string) {
+        return prisma.user.findUnique({
+          where: {
+            username
+          }
+        })
+      },
+
+      async checkPhoneNumber(phoneNumber: string) {
+        return prisma.user.findUnique({
+          where: {
+            phoneNumber
+          }
         })
       },
 
       async storeOTP(userId: number, otp: string) {
         const date = new Date();
-        date.setDate(date.getDate() + 1)
+        date.setMinutes(date.getMinutes() + 1)
         return prisma.user.update({
-          where: { 
+          where: {
             id: userId
-           },
-           data: {
+          },
+          data: {
             otp: parseInt(otp),
-            otp_expire_at: date
-           }
+            otpExpireAt: date
+          }
         })
       },
-      async validOTP(phone_number: string, otp: string){
+      async validOTP(phoneNumber: string, otp: string) {
+        console.log(new Date())
         const user = await prisma.user.findUnique({
-            where: {
-                phone_number: phone_number,
-                otp: parseInt(otp)
+          where: {
+            phoneNumber: phoneNumber,
+            otp: parseInt(otp),
+            otpExpireAt: {
+              gt: new Date()
             }
+          }
         })
-        return ((!user || !user.otp_expire_at) ? false : (user.otp_expire_at > new Date()))
+        return user;
       },
-      async add(username: string, phone_number: string){
+      async add(username: string, phoneNumber: string) {
         return await prisma.user.create({
-            data: {
-                username: username,
-                phone_number: phone_number
-            }
+          data: {
+            username: username,
+            phoneNumber: phoneNumber
+          }
         })
       },
       async modify(params: {
         id: number,
-        username?: string, 
-        phone_number?: string, 
-        avatar?: Buffer, 
-        address?: string, 
-        gender?: Gender}){
-            const {id, ...attr } = params
-            return await prisma.user.update({
-                where: {
-                    id: id
-                },
-                data: attr
-            })
-        }
+        username?: string,
+        phoneNumber?: string,
+        avatar?: Buffer,
+        address?: string,
+        gender?: Gender
+      }) {
+        const { id, ...attr } = params
+        return await prisma.user.update({
+          where: {
+            id: id
+          },
+          data: attr
+        })
+      }
     },
   },
 })

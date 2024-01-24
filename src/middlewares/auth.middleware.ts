@@ -1,9 +1,12 @@
-import { NextFunction, Request, Response } from "express"
+import { NextFunction, Request, Response } from "express";
+import { validateToken } from '../lib/utils/authToken';
 
-function authUser (req : Request, res: Response, next: NextFunction) {
-    console.log(req.session.user_id)
-    if (req.session.user_id) next()
-    else res.status(401).json({success: false, message: "Unauthorized"})
+
+const authUser = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.header('authorization');
+
+    if (token && validateToken(token)) next();
+    else res.status(401).json({ success: false, message: "Unauthorized" })
 }
 
-export {authUser}
+export { authUser }

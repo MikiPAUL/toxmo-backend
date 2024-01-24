@@ -1,5 +1,9 @@
-interface IauthResponse{
+interface IauthResponse {
     status: string
 }
 
-export default IauthResponse
+interface JwtPayload {
+    userId: string
+}
+
+export { IauthResponse, JwtPayload }
