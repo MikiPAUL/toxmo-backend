@@ -4,26 +4,31 @@ import { orderParams } from '../lib/validations/order'
 import prisma from '../models/order'
 
 const create = async (req: Request, res: Response) => {
-    const user = await currentUser(req)
-    if (!user) return res.status(422).json({ error: "Unable to find the user" })
+    try {
+        const user = await currentUser(req)
+        if (!user) return res.status(401).json({ error: "Unable to find the user" })
 
-    const orderRequest = orderParams.safeParse(req.body)
-    if (!orderRequest.success) {
-        return res.status(422).json({ error: "Unable to create order" })
+        const orderRequest = orderParams.safeParse(req.body)
+        if (!orderRequest.success) {
+            return res.status(422).json({ error: "Unable to create order" })
+        }
+        const orderDetails = orderRequest.data.order;
+
+        const order = await prisma.order.add(user.id, orderDetails)
+        if (!order) {
+            return res.status(422).json({ error: "Unable to create order" })
+        }
+        res.status(201).json({ order: order })
     }
-    const orderDetails = orderRequest.data.order
-    console.log(orderDetails)
-    // const order = await prisma.order.add(user.id, orderDetails.productId, orderDetails.purchaseType)
-    // if(!order){
-    return res.status(422).json({ error: "Unable to create order" })
-    // }
-    // res.status(422).json({order: order})
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to create order' })
+    }
 }
 
 const index = async (req: Request, res: Response) => {
     const user = await currentUser(req)
     if (!user) return res.status(422).json({ error: "Unable to find the user" })
-
 
     const orders = await prisma.order.all(user.id)
     res.status(200).json({ orders: orders })

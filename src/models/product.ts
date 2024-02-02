@@ -13,7 +13,11 @@ const prisma = new PrismaClient().$extends({
             async show(id: number) {
                 return prisma.product.findUnique({
                     where: {
-                        id: id
+                        id
+                    },
+                    include: {
+                        seller: true,
+                        reviews: true
                     }
                 })
             },

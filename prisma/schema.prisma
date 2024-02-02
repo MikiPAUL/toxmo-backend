@@ -25,6 +25,7 @@ model User {
   followings    Relationship[] @relation("following")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  Review        Review[]
 }
 
 model Seller {
@@ -75,10 +76,23 @@ model Product {
   sellerId      Int
   teams         Team[]
   orders        Order[]
+  reviews       Review[]
   category      Category @relation(fields: [categoryId], references: [id])
   seller        Seller   @relation(fields: [sellerId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  userId      Int
+  rating      Float
+  description String?
+  product     Product  @relation(fields: [productId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Team {
@@ -91,6 +105,7 @@ model Team {
   teamStatus  TeamStatus   @default(teamCreated)
   teamMembers TeamMember[]
   Product     Product?     @relation(fields: [productId], references: [id])
+  Order       Order[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -111,8 +126,10 @@ model Order {
   productId    Int?
   quantity     Int          @default(1)
   totalPrice   Float
+  teamId       Int?
   purchaseType PurchaseType @default(team)
   orderStatus  OrderStatus  @default(orderPlaced)
+  team         Team?        @relation(fields: [teamId], references: [id])
   user         User         @relation(fields: [userId], references: [id])
   Product      Product?     @relation(fields: [productId], references: [id])
   createdAt    DateTime     @default(now())

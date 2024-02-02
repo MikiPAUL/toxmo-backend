@@ -7,6 +7,27 @@ const prisma = new PrismaClient().$extends({
                 return prisma.seller.findUnique({
                     where: {
                         userId
+                    },
+                    include: {
+                        products: {
+                            include: {
+                                reviews: true
+                            }
+                        }
+                    }
+                })
+            },
+            async shopReviews(userId: number) {
+                return prisma.seller.findUnique({
+                    where: {
+                        userId
+                    },
+                    select: {
+                        products: {
+                            select: {
+                                reviews: true
+                            }
+                        }
                     }
                 })
             }

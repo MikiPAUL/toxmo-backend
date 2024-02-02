@@ -1,10 +1,9 @@
-import { NextFunction, Request, Response } from "express"
+import { Request, Response } from "express"
 import prisma from "../models/product";
 import * as sellerPrisma from "../models/seller";
-import { productParams } from "../lib/validations/product"
+import { productParams, productReviewParams } from "../lib/validations/product"
 import currentUser from "../lib/utils/getCurrentUser";
 import IProduct from "seller";
-import uploadImage from "../services/uploadImage";
 
 interface HandleRequest extends Request {
     params: {
@@ -18,9 +17,16 @@ const index = async (_: Request, res: Response) => {
 }
 
 const show = async (req: HandleRequest, res: Response) => {
-    const product_id = parseInt(req.params.id)
-    const product = await prisma.product.show(product_id)
-    res.json({ product: product })
+    try {
+        const productId = parseInt(req.params.id)
+        const product = await prisma.product.show(productId)
+        console.log(product)
+        res.json({ product: product })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'unable to fetch product details' })
+    }
 }
 
 const create = async (req: Request, res: Response) => {
@@ -65,9 +71,32 @@ const uploadProductImage = async (req: HandleRequest, res: Response) => {
     }
 }
 
+const addReview = async (req: Request, res: Response) => {
+    try {
+        const user = await currentUser(req);
+        const productReviewRequest = productReviewParams.safeParse(req.body);
+        if (!productReviewRequest.success) throw new Error('Unable to add review to the product');
+
+        const review = await prisma.review.create({
+            data: {
+                userId: user.id, ...productReviewRequest.data.review
+            }
+        });
+
+        if (!review) throw new Error('Unable to add review to the product');
+
+        res.status(200).json(review)
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message });
+        else res.status(422).json({ error: 'Unable to add review to the product' });
+    }
+}
+
 export {
     index,
     show,
     create,
+    addReview,
     uploadProductImage as uploadImage
 }

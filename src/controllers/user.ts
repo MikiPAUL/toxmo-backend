@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { userParams, profileParams, sellerParams } from '../lib/validations/user';
+import { userParams, sellerParams, followParams, editProfileParams } from '../lib/validations/user';
 import prisma from '../models/user';
-import { Prisma } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
+import type { User } from '@prisma/client'
 import sendOtp from '../services/verifyOTP';
 import currentUser from '../lib/utils/getCurrentUser';
 
@@ -74,19 +75,58 @@ const applyToSell = async (req: Request, res: Response) => {
     }
 }
 
-const profile = async (req: Request, res: Response) => {
-    const parsedProfileParams = profileParams.safeParse(req.body)
-    if (!parsedProfileParams.success) {
-        return res.status(422).json({ error: "Unable to find the user" })
+const editProfile = async (req: Request, res: Response) => {
+    try {
+        const user = await currentUser(req);
+        const editProfileRequest = editProfileParams.safeParse(req.body);
+        if (!editProfileRequest.success) throw new Error('Unable to edit user profile')
+
+        const updatedUser = await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                address: editProfileRequest.data.user.address
+            }
+        })
+
+        res.status(200).json({ user: serializeUser(updatedUser) })
     }
-    const user_id = parsedProfileParams.data.user.id
-    const user = await prisma.user.findUnique({ where: { id: user_id } })
-    res.json({ user: user })
+    catch (e) {
+        if (e instanceof Error) return res.status(422).json({ error: e.message })
+        res.send(422).json({ error: 'Something went error' })
+    }
+}
+
+
+const profile = async (req: Request, res: Response) => {
+    try {
+        const user = await currentUser(req);
+        res.json({
+            user: serializeUser(user)
+        })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Something went wrong' })
+    }
+}
+
+function serializeUser(user: User) {
+    return {
+        "id": user.id,
+        "username": user.username,
+        "avatar": user.avatar,
+        "address": user.address,
+        "phoneNumber": user.phoneNumber,
+        "gender": user.gender,
+    }
 }
 
 
 export {
     createUser,
     profile,
-    applyToSell
+    applyToSell,
+    editProfile
 }

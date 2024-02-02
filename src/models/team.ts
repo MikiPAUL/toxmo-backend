@@ -32,15 +32,25 @@ const prisma = new PrismaClient().$extends({
                     }
                 })
             },
-            async existingTeamList(productId: number) {
+            async existingTeamList(productId: number, userId: number) {
                 return prisma.team.findMany({
+                    include: {
+                        teamMembers: true
+                    },
                     where: {
                         productId,
                         expireAt: {
                             gte: new Date()
                         },
-                        teamStatus: TeamStatus.teamCreated
-                    }
+                        teamStatus: TeamStatus.teamCreated,
+                        NOT: {
+                            teamMembers: {
+                                some: {
+                                    userId
+                                }
+                            }
+                        }
+                    },
                 })
             }
         }
