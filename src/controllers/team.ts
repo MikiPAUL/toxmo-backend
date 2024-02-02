@@ -40,12 +40,14 @@ const createTeam = async (req: Request, res: Response) => {
 
 const existingTeamList = async (req: Request, res: Response) => {
     try {
+        const user = await currentUser(req);
+
         if (!req.query.productId) throw new Error('Unable to fetch team list');
         const productId = req.query.productId as string;
 
         if (!productId) throw new Error('Something went wrong')
 
-        const teams = await prisma.team.existingTeamList(parseInt(productId));
+        const teams = await prisma.team.existingTeamList(parseInt(productId), user.id);
 
         res.status(200).json({ teams })
     }
@@ -64,6 +66,9 @@ const showTeam = async (req: Request, res: Response) => {
         const team = await prisma.team.findUnique({
             where: {
                 id: parseInt(teamId)
+            },
+            include: {
+                teamMembers: true
             }
         })
         res.status(200).json({ team })

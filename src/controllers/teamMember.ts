@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../models/TeamMember";
-import { TeamStatus } from "@prisma/client";
+import { TeamStatus, OrderStatus } from "@prisma/client";
 import teamPrisma from "../models/team";
 import currentUser from "../lib/utils/getCurrentUser";
 
@@ -36,6 +36,14 @@ const addTeamMember = async (req: Request, res: Response) => {
                 },
                 data: {
                     teamStatus: TeamStatus.teamConfirmed
+                }
+            })
+            await prisma.order.updateMany({
+                where: {
+                    teamId: team.id
+                },
+                data: {
+                    orderStatus: OrderStatus.productShipped
                 }
             })
         }

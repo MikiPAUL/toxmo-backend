@@ -4,19 +4,26 @@ import { PrismaClient, PurchaseType } from "@prisma/client";
 const prisma = new PrismaClient().$extends({
     model: {
         order: {
-            // async add(user_id: number, product_id: number, purchaseType: PurchaseType) {
-            //     return await prisma.order.create({
-            //         data: {
-            //             productId: product_id,
-            //             purchaseType: purchaseType,
-            //             userId: user_id
-            //         }
-            //     })
-            // },
-            async all(user_id: number) {
+            async add(userId: number, orderDetails: {
+                productId: number,
+                quantity: number,
+                purchaseType: PurchaseType,
+                totalPrice: number
+            }) {
+                return await prisma.order.create({
+                    data: {
+                        userId,
+                        ...orderDetails
+                    }
+                })
+            },
+            async all(userId: number) {
                 return prisma.order.findMany({
                     where: {
-                        userId: user_id
+                        userId: userId
+                    },
+                    include: {
+                        team: true
                     }
                 })
             },

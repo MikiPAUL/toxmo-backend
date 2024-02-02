@@ -12,6 +12,15 @@ const productParams = z.object({
     })
 })
 
+const productReviewParams = z.object({
+    review: z.object({
+        productId: z.number(),
+        description: z.string(),
+        rating: z.number()
+    })
+})
+
 export {
-    productParams
+    productParams,
+    productReviewParams
 }

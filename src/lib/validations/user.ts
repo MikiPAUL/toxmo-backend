@@ -7,12 +7,6 @@ const userParams = z.object({
     })
 })
 
-const profileParams = z.object({
-    user: z.object({
-        id: z.number()
-    })
-})
-
 const sellerParams = z.object({
     seller: z.object({
         brandName: z.string(),
@@ -26,8 +20,21 @@ const sellerParams = z.object({
     })
 })
 
+const followParams = z.object({
+    follow: z.object({
+        userId: z.number()
+    })
+})
+
+const editProfileParams = z.object({
+    user: z.object({
+        address: z.string()
+    })
+})
+
 export {
     userParams,
-    profileParams,
-    sellerParams
+    sellerParams,
+    followParams,
+    editProfileParams
 }
