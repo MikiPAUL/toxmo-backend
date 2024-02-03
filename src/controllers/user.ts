@@ -103,8 +103,13 @@ const editProfile = async (req: Request, res: Response) => {
 const profile = async (req: Request, res: Response) => {
     try {
         const user = await currentUser(req);
+        const seller = await prisma.seller.findUnique({
+            where: {
+                userId: user.id
+            }
+        })
         res.json({
-            user: serializeUser(user)
+            user: { ...serializeUser(user), seller }
         })
     }
     catch (e) {
