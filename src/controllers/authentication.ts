@@ -34,18 +34,24 @@ const signIn = async (req: Request, res: Response) => {
 }
 
 const verifyOTP = async (req: Request, res: Response) => {
-    const request = verifyotpParams.safeParse(req.body)
-    if (!request.success) {
-        return res.status(422).json({ status: false, message: "Unable to verify otp" })
-    }
-    const user = await prisma.user.validOTP(request.data.auth.phoneNumber, request.data.auth.otp)
+    try {
+        const request = verifyotpParams.safeParse(req.body)
+        if (!request.success) {
+            return res.status(422).json({ status: false, message: "Unable to verify otp" })
+        }
+        const user = await prisma.user.validOTP(request.data.auth.phoneNumber, request.data.auth.otp)
 
-    if (user) {
-        const token = generateToken(user.id)
-        res.status(200).json({ success: true, message: 'Successfully Logged In', token })
+        if (user) {
+            const token = generateToken(user.id)
+            res.status(200).json({ success: true, message: 'Successfully Logged In', token })
+        }
+        else {
+            res.status(401).json({ error: 'Try resending the otp' })
+        }
     }
-    else {
-        res.status(401).json({ error: 'Try resending the otp' })
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Try resending the otp' })
     }
 }
 
