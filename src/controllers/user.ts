@@ -64,7 +64,8 @@ const applyToSell = async (req: Request, res: Response) => {
         const seller = await prisma.seller.create({
             data: {
                 userId: user.id,
-                ...sellerRequest.data.seller
+                ...sellerRequest.data.seller,
+                active: true
             }
         })
         res.status(201).json({ seller })

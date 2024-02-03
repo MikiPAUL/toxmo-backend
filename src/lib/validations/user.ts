@@ -11,7 +11,6 @@ const sellerParams = z.object({
     seller: z.object({
         brandName: z.string(),
         bio: z.string(),
-        active: z.boolean(),
         contactNumber: z.string(),
         storeAddress: z.string(),
         type: z.string(),
