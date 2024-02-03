@@ -7,7 +7,12 @@ const index = async (req: Request, res: Response) => {
     try {
         const user = await currentUser(req);
 
-        const categories = await prisma.category.all()
+        const categories = await prisma.category.findMany({
+            select: {
+                id: true,
+                categoryName: true
+            }
+        })
         res.status(200).json({ categories })
     }
     catch (e) {
