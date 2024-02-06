@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
-import { userParams, sellerParams, followParams, editProfileParams } from '../lib/validations/user';
+import { userParams, sellerParams, editProfileParams } from '../lib/validations/user';
 import prisma from '../models/user';
-import { PrismaClient } from '@prisma/client'
 import type { User } from '@prisma/client'
 import sendOtp from '../services/verifyOTP';
-import currentUser from '../lib/utils/getCurrentUser';
 
 const createUser = async (req: Request, res: Response) => {
     try {
@@ -40,7 +38,7 @@ const createUser = async (req: Request, res: Response) => {
         const otp_response = await sendOtp(request.data.user.phoneNumber)
         if (!otp_response) throw new Error('Unable to send OTP')
 
-        await prisma.user.storeOTP(user.id, otp_response)
+        await prisma.user.storeOTP(req.userId, otp_response)
         res.status(200).json(
             {
                 success: true,
@@ -60,10 +58,9 @@ const applyToSell = async (req: Request, res: Response) => {
         const sellerRequest = sellerParams.safeParse(req.body);
         if (!sellerRequest.success) return res.status(422).json({ error: 'Invalid request params' })
 
-        const user = await currentUser(req);
         const seller = await prisma.seller.create({
             data: {
-                userId: user.id,
+                userId: req.userId,
                 ...sellerRequest.data.seller,
                 active: true
             }
@@ -78,13 +75,12 @@ const applyToSell = async (req: Request, res: Response) => {
 
 const editProfile = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const editProfileRequest = editProfileParams.safeParse(req.body);
         if (!editProfileRequest.success) throw new Error('Unable to edit user profile')
 
         const updatedUser = await prisma.user.update({
             where: {
-                id: user.id
+                id: req.userId
             },
             data: {
                 address: editProfileRequest.data.user.address
@@ -102,12 +98,17 @@ const editProfile = async (req: Request, res: Response) => {
 
 const profile = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const seller = await prisma.seller.findUnique({
             where: {
-                userId: user.id
+                userId: req.userId
             }
         })
+        const user = await prisma.user.findUnique({
+            where: {
+                id: req.userId
+            }
+        })
+        if (!user) return;
         res.json({
             user: { ...serializeUser(user), seller }
         })

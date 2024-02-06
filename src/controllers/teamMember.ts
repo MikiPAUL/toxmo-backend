@@ -6,7 +6,6 @@ import currentUser from "../lib/utils/getCurrentUser";
 
 const addTeamMember = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const teamId = req.params.id;
         const team = await prisma.team.findUnique({
             where: {
@@ -23,7 +22,7 @@ const addTeamMember = async (req: Request, res: Response) => {
         });
 
         if (!team || !team.Product) throw new Error('Unable to join the team')
-        const teamMember = await prisma.teamMember.addTeamMember(team.id, user.id);
+        const teamMember = await prisma.teamMember.addTeamMember(team.id, req.userId);
 
         if (!teamMember) throw new Error('Unable to join the team');
         const teamMemberCount = await teamPrisma.team.teamMembersCount(team.id);

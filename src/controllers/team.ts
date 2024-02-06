@@ -6,7 +6,6 @@ import currentUser from "../lib/utils/getCurrentUser";
 
 const createTeam = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const parsedParams = createTeamParams.safeParse(req.body);
         if (!parsedParams.success) throw new Error('Unable to create team')
 
@@ -14,7 +13,7 @@ const createTeam = async (req: Request, res: Response) => {
 
         const { newTeam, newTeamMember } = await prisma.$transaction(async (prisma) => {
             const newTeam = await prisma.team.createTeam(productId);
-            const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, user.id);
+            const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, req.userId);
 
             return { newTeam, newTeamMember };
         });
@@ -40,14 +39,13 @@ const createTeam = async (req: Request, res: Response) => {
 
 const existingTeamList = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
 
         if (!req.query.productId) throw new Error('Unable to fetch team list');
         const productId = req.query.productId as string;
 
         if (!productId) throw new Error('Something went wrong')
 
-        const teams = await prisma.team.existingTeamList(parseInt(productId), user.id);
+        const teams = await prisma.team.existingTeamList(parseInt(productId), req.userId);
 
         res.status(200).json({ teams })
     }

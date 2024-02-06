@@ -4,6 +4,15 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 dotenv.config({ path: __dirname + '/../.env', debug: true });
 
+
+declare global {
+    namespace Express {
+        interface Request {
+            userId: number
+        }
+    }
+}
+
 const app = express()
 
 app.use(bodyParser.json())

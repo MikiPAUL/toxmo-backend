@@ -11,16 +11,35 @@ interface HandleRequest extends Request {
     }
 }
 
-const index = async (_: Request, res: Response) => {
-    const products = await prisma.product.all()
-    res.json({ products: products })
+const index = async (req: Request, res: Response) => {
+    try {
+        const categoryId = req.query.categoryId as string
+
+        let products;
+        if (categoryId) {
+            products = await prisma.product.findMany({
+                where: {
+                    categoryId: parseInt(categoryId)
+                }
+            })
+        }
+        else {
+            products = await prisma.product.all()
+        }
+
+        res.json({ products: products })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'unable to list products' })
+    }
 }
 
 const show = async (req: HandleRequest, res: Response) => {
     try {
         const productId = parseInt(req.params.id)
         const product = await prisma.product.show(productId)
-        console.log(product)
+
         res.json({ product: product })
     }
     catch (e) {
@@ -35,13 +54,13 @@ const create = async (req: Request, res: Response) => {
         return res.status(422).json({ error: "Unable to create product" })
     }
 
-    const user = await currentUser(req);
-    const seller = await sellerPrisma.default.seller.sellerInfo(user.id);
+
+    const seller = await sellerPrisma.default.seller.sellerInfo(req.userId);
 
     if (!seller) throw new Error('Invalid Seller')
 
     const productDetails: IProduct = createParams.data.product;
-    console.log({ ...productDetails, sellerId: seller.id })
+
     const product = await prisma.product.add({ ...productDetails, sellerId: seller.id })
     if (!product) {
         return res.status(422).json({ error: "Unable to create product" })
@@ -62,7 +81,7 @@ const uploadProductImage = async (req: HandleRequest, res: Response) => {
                 imageLink: file.location
             }
         })
-        console.log(req.file)
+
         res.status(200).json({ product: product })
     }
     catch (e) {
@@ -73,13 +92,12 @@ const uploadProductImage = async (req: HandleRequest, res: Response) => {
 
 const addReview = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const productReviewRequest = productReviewParams.safeParse(req.body);
         if (!productReviewRequest.success) throw new Error('Unable to add review to the product');
 
         const review = await prisma.review.create({
             data: {
-                userId: user.id, ...productReviewRequest.data.review
+                userId: req.userId, ...productReviewRequest.data.review
             }
         });
 

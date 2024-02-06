@@ -8,14 +8,22 @@ const currentUser = async (req: Request): Promise<User> => {
 
     if (!token) throw new Error('Something went wrong');
 
-    const user_id = validateToken(token);
+    const { userId, randomInt } = validateToken(token);
 
-    const user = await prisma.user.findUnique({
+    const userWithRandomSecret = await prisma.user.findUnique({
         where: {
-            id: user_id
+            id: userId,
+            randomInt
         }
     })
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId
+        }
+    })
+
     if (!user) throw new Error('User not found')
+    if (!userWithRandomSecret) throw new Error('Token expired')
     return user;
 }
 
