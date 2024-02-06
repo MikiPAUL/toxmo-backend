@@ -42,7 +42,7 @@ const verifyOTP = async (req: Request, res: Response) => {
         const user = await prisma.user.validOTP(request.data.auth.phoneNumber, request.data.auth.otp)
 
         if (user) {
-            const token = generateToken(user.id)
+            const token = generateToken(user.id, user.randomInt)
             res.status(200).json({ success: true, message: 'Successfully Logged In', token })
         }
         else {
@@ -55,7 +55,27 @@ const verifyOTP = async (req: Request, res: Response) => {
     }
 }
 
+const signOut = async (req: Request, res: Response) => {
+    try {
+        await prisma.user.update({
+            where: {
+                id: req.userId
+            },
+            data: {
+                randomInt: Math.floor(Math.random() * 10000)
+            }
+        })
+
+        res.status(200).json({ success: true, message: 'Logout Successfully' })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Something went wrong' })
+    }
+}
+
 export {
     signIn,
-    verifyOTP
+    verifyOTP,
+    signOut
 }

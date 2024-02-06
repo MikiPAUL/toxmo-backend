@@ -1,12 +1,16 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { validateToken } from '../lib/utils/authToken';
+import currentUser from "../lib/utils/getCurrentUser";
 
-
-const authUser = (req: Request, res: Response, next: NextFunction) => {
+const authUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const token = req.header('authorization');
+        const token = req.headers['authorization'];
+        if (token && validateToken(token).userId) {
+            const user = await currentUser(req)
+            req.userId = user.id
+            next();
+        }
 
-        if (token && validateToken(token)) next();
         else res.status(401).json({ success: false, message: "Unauthorized" })
     }
     catch (e) {

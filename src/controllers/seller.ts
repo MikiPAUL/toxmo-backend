@@ -5,8 +5,7 @@ import { followParams } from "../lib/validations/user";
 
 const shopReviews = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
-        const reviews = await prisma.seller.shopReviews(user.id);
+        const reviews = await prisma.seller.shopReviews(req.userId);
 
         res.status(200).json({ reviews })
     }

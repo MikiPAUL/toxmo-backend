@@ -8,24 +8,23 @@ datasource db {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  username      String         @unique
-  otp           Int?
-  otpExpireAt   DateTime?
-  avatar        Bytes?
-  address       String?
-  phoneNumber   String         @unique
-  gender        Gender?
-  sessionToken  String?
-  tokenExpireAt DateTime?
-  orders        Order[]
-  seller        Seller?
-  teamMembers   TeamMember[]
-  followers     Relationship[] @relation("follower")
-  followings    Relationship[] @relation("following")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  Review        Review[]
+  id          Int            @id @default(autoincrement())
+  username    String         @unique
+  otp         Int?
+  otpExpireAt DateTime?
+  avatar      Bytes?
+  address     String?
+  phoneNumber String         @unique
+  randomInt   Int            @default(0)
+  gender      Gender?
+  orders      Order[]
+  seller      Seller?
+  teamMembers TeamMember[]
+  followers   Relationship[] @relation("follower")
+  followings  Relationship[] @relation("following")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  Review      Review[]
 }
 
 model Seller {

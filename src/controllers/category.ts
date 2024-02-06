@@ -5,8 +5,6 @@ import currentUser from "../lib/utils/getCurrentUser";
 
 const index = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
-
         const categories = await prisma.category.findMany({
             select: {
                 id: true,

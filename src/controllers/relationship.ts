@@ -5,13 +5,12 @@ import { followParams } from "../lib/validations/user";
 
 const followUser = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const followRequest = followParams.safeParse(req.body);
 
         if (!followRequest.success) throw new Error('Unable to follow the user')
         const followingId = followRequest.data.follow.userId;
 
-        const relationship = await prisma.relationship.followUser(user.id, followingId);
+        const relationship = await prisma.relationship.followUser(req.userId, followingId);
 
         res.status(200).json({ relationship })
     }
@@ -23,15 +22,14 @@ const followUser = async (req: Request, res: Response) => {
 
 const relationshipInfo = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req);
         const followerCount = await prisma.relationship.count({
             where: {
-                followingId: user.id
+                followingId: req.userId
             }
         })
         const followingCount = await prisma.relationship.count({
             where: {
-                followerId: user.id
+                followerId: req.userId
             }
         })
         res.status(200).json({ relationship: { followerCount, followingCount } })

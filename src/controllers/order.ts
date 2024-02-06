@@ -27,11 +27,21 @@ const create = async (req: Request, res: Response) => {
 }
 
 const index = async (req: Request, res: Response) => {
-    const user = await currentUser(req)
-    if (!user) return res.status(422).json({ error: "Unable to find the user" })
+    try {
+        const user = await currentUser(req)
+        if (!user) return res.status(401).json({ error: "Unable to find the user" })
 
-    const orders = await prisma.order.all(user.id)
-    res.status(200).json({ orders: orders })
+        const orders = await prisma.order.findMany({
+            where: {
+                userId: user.id
+            }
+        })
+        res.status(200).json({ orders: orders })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to create order' })
+    }
 }
 
 const update = async (req: Request, res: Response) => {
