@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
 import prisma from "../models/product";
 import * as sellerPrisma from "../models/seller";
+import type { Product } from '@prisma/client'
 import { productParams, productReviewParams } from "../lib/validations/product"
 import currentUser from "../lib/utils/getCurrentUser";
 import IProduct from "seller";
@@ -15,19 +16,47 @@ const index = async (req: Request, res: Response) => {
     try {
         const categoryId = req.query.categoryId as string
 
-        let products;
         if (categoryId) {
-            products = await prisma.product.findMany({
+            var products = await prisma.product.findMany({
                 where: {
                     categoryId: parseInt(categoryId)
                 },
-                include: {
-                    category: true
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    teamPrice: true,
+                    price: true,
+                    imageLink: true,
+                    categoryId: true,
+                    seller: {
+                        select: {
+                            id: true,
+                            brandName: true
+                        }
+                    }
                 }
             })
         }
+
         else {
-            products = await prisma.product.all()
+            var products = await prisma.product.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    teamPrice: true,
+                    price: true,
+                    imageLink: true,
+                    categoryId: true,
+                    seller: {
+                        select: {
+                            id: true,
+                            brandName: true
+                        }
+                    }
+                }
+            })
         }
 
         res.json({ products: products })
@@ -42,7 +71,6 @@ const show = async (req: HandleRequest, res: Response) => {
     try {
         const productId = parseInt(req.params.id)
         const product = await prisma.product.show(productId)
-
         res.json({ product: product })
     }
     catch (e) {
@@ -56,7 +84,6 @@ const create = async (req: Request, res: Response) => {
     if (!createParams.success) {
         return res.status(422).json({ error: "Unable to create product" })
     }
-
 
     const seller = await sellerPrisma.default.seller.sellerInfo(req.userId);
 
