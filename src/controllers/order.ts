@@ -54,7 +54,6 @@ const show = async (req: Request, res: Response) => {
     const user = await currentUser(req)
     if (!user) return res.status(422).json({ error: "Unable to find the user" })
     const order_id = parseInt(req.params.id);
-    console.log(order_id)
     const order = await prisma.order.find_by(order_id)
 
     if (!order) return res.status(422).json({ error: "Unable to find the order" })

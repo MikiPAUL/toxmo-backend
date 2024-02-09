@@ -20,6 +20,9 @@ const index = async (req: Request, res: Response) => {
             products = await prisma.product.findMany({
                 where: {
                     categoryId: parseInt(categoryId)
+                },
+                include: {
+                    category: true
                 }
             })
         }

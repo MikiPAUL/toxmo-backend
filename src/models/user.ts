@@ -43,7 +43,6 @@ const prisma = new PrismaClient().$extends({
         })
       },
       async validOTP(phoneNumber: string, otp: string) {
-        console.log(new Date())
         const user = await prisma.user.findUnique({
           where: {
             phoneNumber: phoneNumber,
