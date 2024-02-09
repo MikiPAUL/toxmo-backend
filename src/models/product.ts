@@ -16,8 +16,7 @@ const prisma = new PrismaClient().$extends({
                         id
                     },
                     include: {
-                        seller: true,
-                        reviews: true
+                        seller: true
                     }
                 })
             },
@@ -28,8 +27,7 @@ const prisma = new PrismaClient().$extends({
                 teamPrice: number,
                 teamSize: number,
                 sellerId: number,
-                stockQuantity: number,
-                otherDetails: Record<string, any>
+                stockQuantity: number
             }) {
                 return prisma.product.create({
                     data: createParams

@@ -65,9 +65,9 @@ model Category {
 model Product {
   id            Int      @id @default(autoincrement())
   name          String
+  description   String?
   price         Float
   categoryId    Int
-  otherDetails  Json?
   stockQuantity Int
   imageLink     String?
   teamPrice     Float

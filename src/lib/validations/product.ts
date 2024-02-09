@@ -4,11 +4,11 @@ const productParams = z.object({
     product: z.object({
         name: z.string(),
         price: z.number(),
+        description: z.string(),
         categoryId: z.number(),
         teamPrice: z.number(),
         teamSize: z.number(),
-        stockQuantity: z.number(),
-        otherDetails: z.record(z.string(), z.unknown())
+        stockQuantity: z.number()
     })
 })
 
