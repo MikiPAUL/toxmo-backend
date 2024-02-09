@@ -48,7 +48,6 @@ const createUser = async (req: Request, res: Response) => {
     }
     catch (e) {
         if (e instanceof Error) return res.status(422).json({ error: e.message })
-        console.log(e)
         res.status(422).json({ error: 'Something went wrong' })
     }
 }
