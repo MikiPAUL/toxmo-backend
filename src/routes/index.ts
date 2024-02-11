@@ -22,7 +22,7 @@ router.post('/api/user/profile', authUser, profile)
 router.put('/api/user/:id', authUser, editProfile)
 router.delete('/api/user', authUser, signOut)
 router.post('/api/seller', authUser, applyToSell)
-router.get('/api/seller/details', authUser, seller.shopDetails)
+router.get('/api/seller/:id/details', authUser, seller.shopDetails)
 router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
 router.get('/api/me', authUser, profile)
 

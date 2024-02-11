@@ -17,6 +17,7 @@ const shopReviews = async (req: Request, res: Response) => {
 const shopDetails = async (req: Request, res: Response) => {
     try {
         const userId = req.params.id as string;
+
         const shopDetails = await prisma.seller.sellerInfo(parseInt(userId));
         res.json({ seller: shopDetails })
     }

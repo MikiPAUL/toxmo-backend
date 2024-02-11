@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import currentUser from '../lib/utils/getCurrentUser'
 import { orderParams } from '../lib/validations/order'
 import prisma from '../models/order'
-import { TeamStatus, OrderStatus } from "@prisma/client";
+import { TeamStatus, OrderStatus, PurchaseType } from "@prisma/client";
 import teamMemberPrisma from '../models/TeamMember'
 import productPrisma from '../models/product'
 import teamPrisma from '../models/team'
@@ -17,7 +17,6 @@ const create = async (req: Request, res: Response) => {
             return res.status(422).json({ error: "Unable to create order" })
         }
         const orderDetails = orderRequest.data.order;
-
         const { order } = await prisma.$transaction(async (prisma) => {
             const productStockQuantity = await prisma.product.findUnique({
                 where: {
@@ -57,7 +56,7 @@ const create = async (req: Request, res: Response) => {
                 const teamMemberCount = await teamPrisma.team.teamMembersCount(orderDetails.teamId);
                 const maxTeamCapacity = team.Product.teamSize;
 
-                if (teamMemberCount?._count.teamMembers == maxTeamCapacity) {
+                if (teamMemberCount?._count.teamMembers === maxTeamCapacity) {
                     await teamPrisma.team.update({
                         where: {
                             id: team.id
@@ -75,12 +74,14 @@ const create = async (req: Request, res: Response) => {
             if (order.orderStatus == OrderStatus.orderPlaced) {
                 await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
             }
-            return { order };
+            return { order }
         });
         if (!order) {
             return res.status(422).json({ error: "Unable to create order" })
         }
-        res.status(201).json({ order: order })
+
+        const teamMembersCount = await teamPrisma.team.teamMembersCount(orderDetails.teamId || -1)
+        res.status(201).json({ order: { ...order, teamMemberCount: teamMembersCount?._count.teamMembers || null } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -100,12 +101,17 @@ const index = async (req: Request, res: Response) => {
             include: {
                 Product: {
                     select: {
-                        id: true, description: true, imageLink: true, name: true
+                        id: true, description: true, imageLink: true, name: true, teamSize: true
                     }
                 }
             }
         })
-        res.status(200).json({ orders: orders })
+        const response = orders.map(async (order) => {
+            const teamMembersCount = await teamPrisma.team.teamMembersCount(order.teamId || -1)
+            return { ...order, teamMemberCount: teamMembersCount?._count.teamMembers || null }
+        })
+
+        res.status(200).json({ orders: await Promise.all(response) })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

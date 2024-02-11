@@ -18,7 +18,7 @@ const prisma = new PrismaClient().$extends({
                     include: {
                         Product: {
                             select: {
-                                id: true, description: true, imageLink: true, name: true
+                                id: true, description: true, imageLink: true, name: true, teamSize: true
                             }
                         }
                     }
