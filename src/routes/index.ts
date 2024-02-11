@@ -27,7 +27,7 @@ router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
 router.get('/api/me', authUser, profile)
 
 router.post('/api/user/follow', authUser, relationships.followUser)
-router.get('/api/user/relationship', authUser, relationships.relationshipInfo)
+router.get('/api/user/:id/relationship', authUser, relationships.relationshipInfo)
 
 router.get('/api/products', authUser, products.index)
 router.get('/api/products/:id', authUser, products.show)
