@@ -1,11 +1,10 @@
 import prisma from "../models/seller";
 import { Request, Response } from "express";
-import currentUser from "../lib/utils/getCurrentUser";
-import { followParams } from "../lib/validations/user";
 
 const shopReviews = async (req: Request, res: Response) => {
     try {
-        const reviews = await prisma.seller.shopReviews(req.userId);
+        const userId = req.params.id as string
+        const reviews = await prisma.seller.shopReviews(parseInt(userId));
 
         res.status(200).json({ reviews })
     }
@@ -17,7 +16,8 @@ const shopReviews = async (req: Request, res: Response) => {
 
 const shopDetails = async (req: Request, res: Response) => {
     try {
-        const shopDetails = await prisma.seller.sellerInfo(req.userId);
+        const userId = req.params.id as string;
+        const shopDetails = await prisma.seller.sellerInfo(parseInt(userId));
         res.json({ seller: shopDetails })
     }
     catch (e) {
