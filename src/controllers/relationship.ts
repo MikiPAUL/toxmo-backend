@@ -2,6 +2,7 @@ import prisma from "../models/relationship";
 import { Request, Response } from "express";
 import currentUser from "../lib/utils/getCurrentUser";
 import { followParams } from "../lib/validations/user";
+import { User } from "@prisma/client";
 
 const followUser = async (req: Request, res: Response) => {
     try {
@@ -22,21 +23,42 @@ const followUser = async (req: Request, res: Response) => {
 
 const relationshipInfo = async (req: Request, res: Response) => {
     try {
-        const followerCount = await prisma.relationship.count({
+        const followers = await prisma.relationship.findMany({
             where: {
                 followingId: req.userId
+            },
+            select: {
+                follower: true
             }
         })
-        const followingCount = await prisma.relationship.count({
+        const followings = await prisma.relationship.findMany({
             where: {
                 followerId: req.userId
+            },
+            select: {
+                following: true
             }
         })
-        res.status(200).json({ relationship: { followerCount, followingCount } })
+        res.status(200).json({
+            relationship: {
+                followers: followers.map(follower => serializeUser({ ...follower.follower })),
+                followings: followings.map(following => serializeUser({ ...following.following })),
+                followersCount: followers.length,
+                followingsCount: followings.length
+            }
+        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
         else res.status(422).json({ error: 'Unable to follow the user' })
+    }
+}
+
+function serializeUser(user: User) {
+    return {
+        "id": user.id,
+        "username": user.username,
+        "avatar": user.avatar
     }
 }
 

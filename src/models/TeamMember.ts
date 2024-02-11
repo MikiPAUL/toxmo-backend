@@ -6,7 +6,7 @@ const prisma = new PrismaClient().$extends({
             async addTeamMember(teamId: number, userId: number) {
                 return prisma.teamMember.create({
                     data: {
-                        teamId, userId
+                        teamId: teamId, userId
                     }
                 })
             },

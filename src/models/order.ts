@@ -1,5 +1,4 @@
-import { PrismaClient, PurchaseType } from "@prisma/client";
-
+import { PrismaClient, PurchaseType, OrderStatus } from "@prisma/client";
 
 const prisma = new PrismaClient().$extends({
     model: {
@@ -8,7 +7,8 @@ const prisma = new PrismaClient().$extends({
                 productId: number,
                 quantity: number,
                 purchaseType: PurchaseType,
-                totalPrice: number
+                totalPrice: number,
+                teamId?: number
             }) {
                 return await prisma.order.create({
                     data: {
@@ -31,6 +31,26 @@ const prisma = new PrismaClient().$extends({
                 return prisma.order.findUnique({
                     where: {
                         id: order_id
+                    }
+                })
+            },
+            async updateOrderStatus({ teamId, orderId, status }: { teamId?: number, orderId?: number, status: OrderStatus }) {
+                if (teamId) {
+                    return prisma.order.updateMany({
+                        where: {
+                            teamId: teamId
+                        },
+                        data: {
+                            orderStatus: status
+                        }
+                    })
+                }
+                return prisma.order.update({
+                    where: {
+                        id: orderId
+                    },
+                    data: {
+                        orderStatus: status
                     }
                 })
             }

@@ -9,11 +9,7 @@ const prisma = new PrismaClient().$extends({
                         userId
                     },
                     include: {
-                        products: {
-                            include: {
-                                reviews: true
-                            }
-                        }
+                        products: true
                     }
                 })
             },
