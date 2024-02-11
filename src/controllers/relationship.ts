@@ -23,9 +23,10 @@ const followUser = async (req: Request, res: Response) => {
 
 const relationshipInfo = async (req: Request, res: Response) => {
     try {
+        const userId = req.params.id as string
         const followers = await prisma.relationship.findMany({
             where: {
-                followingId: req.userId
+                followingId: parseInt(userId)
             },
             select: {
                 follower: true
@@ -33,7 +34,7 @@ const relationshipInfo = async (req: Request, res: Response) => {
         })
         const followings = await prisma.relationship.findMany({
             where: {
-                followerId: req.userId
+                followerId: parseInt(userId)
             },
             select: {
                 following: true
