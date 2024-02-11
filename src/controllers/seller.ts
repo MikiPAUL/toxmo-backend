@@ -15,6 +15,18 @@ const shopReviews = async (req: Request, res: Response) => {
     }
 }
 
+const shopDetails = async (req: Request, res: Response) => {
+    try {
+        const shopDetails = await prisma.seller.sellerInfo(req.userId);
+        res.json({ seller: shopDetails })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Error while fetching shop details' })
+    }
+}
+
 export {
-    shopReviews
+    shopReviews,
+    shopDetails
 }

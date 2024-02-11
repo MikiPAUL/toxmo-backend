@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { createTeamParams } from "../lib/validations/team";
 import prisma from "../models/team";
 import teamMemberPrisma from "../models/TeamMember";
-import currentUser from "../lib/utils/getCurrentUser";
 
 const createTeam = async (req: Request, res: Response) => {
     try {

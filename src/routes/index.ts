@@ -9,7 +9,8 @@ import * as relationships from '../controllers/relationship'
 import * as team from '../controllers/team'
 import { authUser } from '../middlewares/auth.middleware'
 import uploadImage from '../services/uploadImage'
-import * as teamMember from '../controllers/teamMember'
+// import * as teamMember from '../controllers/teamMember'
+import * as liveStream from '../controllers/liveStream'
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.post('/api/user/profile', authUser, profile)
 router.put('/api/user/:id', authUser, editProfile)
 router.delete('/api/user', authUser, signOut)
 router.post('/api/seller', authUser, applyToSell)
+router.get('/api/seller/details', authUser, seller.shopDetails)
 router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
 router.get('/api/me', authUser, profile)
 
@@ -46,6 +48,10 @@ router.post('/api/team', authUser, team.createTeam)
 router.get('/api/team', authUser, team.existingTeamList)
 router.get('/api/team/:id', authUser, team.showTeam)
 
-router.patch('/api/team/:id', authUser, teamMember.addTeamMember)
+// router.patch('/api/team/:id', authUser, teamMember.addTeamMember)
+
+router.post('/api/livestream', authUser, liveStream.create)
+router.patch('/api/livestream/:id', authUser, liveStream.edit)
+router.get('/api/livestream', authUser, liveStream.index)
 
 export default router

@@ -1,7 +1,6 @@
 import { Request, Response, response } from "express"
 import { prisma } from "../models/category"
 import { categoryParams } from "../lib/validations/category"
-import currentUser from "../lib/utils/getCurrentUser";
 
 const index = async (req: Request, res: Response) => {
     try {

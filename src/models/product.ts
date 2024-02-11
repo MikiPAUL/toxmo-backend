@@ -32,6 +32,18 @@ const prisma = new PrismaClient().$extends({
                 return prisma.product.create({
                     data: createParams
                 })
+            },
+            async reduceStockQuantity(productId: number, quantity: number) {
+                return prisma.product.update({
+                    where: {
+                        id: productId
+                    },
+                    data: {
+                        stockQuantity: {
+                            decrement: quantity
+                        }
+                    }
+                })
             }
         },
     }
