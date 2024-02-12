@@ -38,7 +38,7 @@ const createUser = async (req: Request, res: Response) => {
         const otp_response = await sendOtp(request.data.user.phoneNumber)
         if (!otp_response) throw new Error('Unable to send OTP')
 
-        await prisma.user.storeOTP(req.userId, otp_response)
+        await prisma.user.storeOTP(user.id, otp_response)
         res.status(200).json(
             {
                 success: true,
