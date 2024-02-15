@@ -1,15 +1,9 @@
 import { Request, Response } from "express"
 import prisma from "../models/product";
+import relationshipPrisma from "../models/relationship";
 import * as sellerPrisma from "../models/seller";
-import type { Product } from '@prisma/client'
 import { productParams, productReviewParams } from "../lib/validations/product"
 import IProduct from "seller";
-
-interface HandleRequest extends Request {
-    params: {
-        id: string
-    }
-}
 
 const index = async (req: Request, res: Response) => {
     try {
@@ -68,11 +62,16 @@ const index = async (req: Request, res: Response) => {
     }
 }
 
-const show = async (req: HandleRequest, res: Response) => {
+const show = async (req: Request, res: Response) => {
     try {
         const productId = parseInt(req.params.id)
-        const product = await prisma.product.show(productId)
-        res.json({ product: product })
+        const product: { [k: string]: any } | null = await prisma.product.show(productId)
+
+        if (!product) return res.status(404).json({ error: 'Product not found ' })
+
+        const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, product.sellerId)
+        product.seller['isFollowing'] = isFollowing
+        res.json({ product: { ...product } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -105,28 +104,6 @@ const create = async (req: Request, res: Response) => {
     }
 }
 
-const uploadProductImage = async (req: HandleRequest, res: Response) => {
-    try {
-        const file = req.file as Express.MulterS3.File;
-        if (!file) throw new Error('Unable upload image, please try again');
-        const productId = parseInt(req.params.id)
-        const product = await prisma.product.update({
-            where: {
-                id: productId
-            },
-            data: {
-                imageLink: file.location
-            }
-        })
-
-        res.status(200).json({ product: product })
-    }
-    catch (e) {
-        if (e instanceof Error) res.status(422).json({ error: e.message });
-        else res.status(422).json({ error: 'Unable upload image, please try again' })
-    }
-}
-
 const addReview = async (req: Request, res: Response) => {
     try {
         const productReviewRequest = productReviewParams.safeParse(req.body);
@@ -152,6 +129,5 @@ export {
     index,
     show,
     create,
-    addReview,
-    uploadProductImage as uploadImage
+    addReview
 }
