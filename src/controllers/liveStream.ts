@@ -17,7 +17,7 @@ const create = async (req: Request, res: Response) => {
 
         const seller = await prisma.seller.findUnique({
             where: {
-                userId: req.userId
+                id: req.userId
             }
         })
 
@@ -49,7 +49,7 @@ const edit = async (req: Request, res: Response) => {
 
         const seller = await prisma.seller.findUnique({
             where: {
-                userId: req.userId
+                id: req.userId
             }
         })
 

@@ -7,8 +7,9 @@ import * as categories from '../controllers/category'
 import * as orders from '../controllers/order'
 import * as relationships from '../controllers/relationship'
 import * as team from '../controllers/team'
+import uploadImage from '../controllers/imageUpload'
 import { authUser } from '../middlewares/auth.middleware'
-import uploadImage from '../services/uploadImage'
+import uploadImageService from '../services/uploadImage'
 // import * as teamMember from '../controllers/teamMember'
 import * as liveStream from '../controllers/liveStream'
 
@@ -23,6 +24,7 @@ router.put('/api/user/:id', authUser, editProfile)
 router.delete('/api/user', authUser, signOut)
 router.post('/api/seller', authUser, applyToSell)
 router.get('/api/seller/:id/details', authUser, seller.shopDetails)
+router.get('/api/seller/:id/orders', authUser, seller.shopOrders)
 router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
 router.get('/api/me', authUser, profile)
 
@@ -32,7 +34,6 @@ router.get('/api/user/:id/relationship', authUser, relationships.relationshipInf
 router.get('/api/products', authUser, products.index)
 router.get('/api/products/:id', authUser, products.show)
 router.post('/api/products', authUser, products.create)
-router.post('/api/products/:id/uploadImage', authUser, uploadImage.single('image'), products.uploadImage);
 router.post('/api/products/:id/reviews', authUser, products.addReview);
 
 router.get('/api/category', authUser, categories.index)
@@ -54,4 +55,5 @@ router.post('/api/livestream', authUser, liveStream.create)
 router.patch('/api/livestream/:id', authUser, liveStream.edit)
 router.get('/api/livestream', authUser, liveStream.index)
 
+router.post('/api/uploadImage/:id', authUser, uploadImageService.single('image'), uploadImage)
 export default router

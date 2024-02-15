@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import currentUser from '../lib/utils/getCurrentUser'
 import { orderParams } from '../lib/validations/order'
 import prisma from '../models/order'
-import { TeamStatus, OrderStatus, PurchaseType } from "@prisma/client";
+import { TeamStatus, OrderStatus } from "@prisma/client";
 import teamMemberPrisma from '../models/TeamMember'
 import productPrisma from '../models/product'
 import teamPrisma from '../models/team'
