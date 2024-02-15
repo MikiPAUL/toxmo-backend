@@ -33,12 +33,13 @@ model Seller {
   brandName     String
   active        Boolean      @default(false)
   bio           String
-  category      String
   contactNumber String
   email         String
   storeAddress  String
   type          String
+  categoryId    Int
   products      Product[]
+  category      Category     @relation(fields: [categoryId], references: [id])
   user          User         @relation(fields: [userId], references: [id])
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -53,14 +54,16 @@ model Relationship {
   following   User     @relation("following", fields: [followingId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([followerId, followingId])
 }
 
 model Category {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   categoryName String
-  products     Product[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Seller       Seller[]
 }
 
 model Product {
@@ -68,7 +71,6 @@ model Product {
   name          String
   description   String?
   price         Float
-  categoryId    Int
   stockQuantity Int
   imageLink     String?
   teamPrice     Float
@@ -77,7 +79,6 @@ model Product {
   teams         Team[]
   orders        Order[]
   reviews       Review[]
-  category      Category @relation(fields: [categoryId], references: [id])
   seller        Seller   @relation(fields: [sellerId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -118,6 +119,8 @@ model TeamMember {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([teamId, userId])
 }
 
 model Order {
@@ -137,13 +140,15 @@ model Order {
 }
 
 model LiveStream {
-  id        Int      @id @default(autoincrement())
-  meetId    String
-  sellerId  Int
-  seller    Seller   @relation(fields: [sellerId], references: [id])
-  expiresAt DateTime @default(dbgenerated("(now() + '60 minutes'::interval minute)"))
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  meetId      String
+  description String?
+  thumbnail   String?
+  sellerId    Int
+  seller      Seller   @relation(fields: [sellerId], references: [id])
+  expiresAt   DateTime @default(dbgenerated("(now() + '60 minutes'::interval minute)"))
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum Gender {

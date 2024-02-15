@@ -4,6 +4,12 @@ import { liveStreamParams } from "../lib/validations/liveStream"
 import { User } from "@prisma/client"
 import { number } from "zod"
 
+interface HandleRequest extends Request {
+    params: {
+        id: string
+    }
+}
+
 const create = async (req: Request, res: Response) => {
     try {
         const liveStreamReq = liveStreamParams.safeParse(req.body)
@@ -15,16 +21,20 @@ const create = async (req: Request, res: Response) => {
             }
         })
 
-        if (!seller || !liveStreamReq.data.liveStream.meetId) throw new Error('Create seller account to start live stream')
+        if (!seller) throw new Error('Create seller account to start live stream')
+
+        const { meetId, description } = liveStreamReq.data.liveStream
+
+        if (!liveStreamReq.data.liveStream || !meetId || !description) throw new Error('Invalid request params')
 
         const liveStream = await prisma.liveStream.create({
             data: {
                 sellerId: seller.id,
-                meetId: liveStreamReq.data.liveStream.meetId
+                meetId, description
             }
         })
 
-        res.status(200).json({ liveStream })
+        res.status(200).json({ liveStream: liveStream })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -43,14 +53,14 @@ const edit = async (req: Request, res: Response) => {
             }
         })
 
-        if (!seller) throw new Error('Create seller account to start live stream')
+        if (!seller || !liveStreamReq.data.liveStream.expiresAt) throw new Error('Create seller account to start live stream')
 
         const liveStream = await prisma.liveStream.update({
             where: {
                 id: parseInt(req.params.id)
             },
             data: {
-                expiresAt: liveStreamReq.data.liveStream.expiresAt
+                expiresAt: new Date(liveStreamReq.data.liveStream.expiresAt).toISOString()
             }
         })
 
@@ -120,5 +130,5 @@ function serializeUser(user: User) {
 export {
     create,
     edit,
-    index
+    index,
 }

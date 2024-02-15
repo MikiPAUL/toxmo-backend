@@ -3,7 +3,6 @@ import prisma from "../models/product";
 import * as sellerPrisma from "../models/seller";
 import type { Product } from '@prisma/client'
 import { productParams, productReviewParams } from "../lib/validations/product"
-import currentUser from "../lib/utils/getCurrentUser";
 import IProduct from "seller";
 
 interface HandleRequest extends Request {
@@ -17,26 +16,30 @@ const index = async (req: Request, res: Response) => {
         const categoryId = req.query.categoryId as string
 
         if (categoryId) {
-            var products = await prisma.product.findMany({
+            var sellerProducts = await prisma.seller.findMany({
                 where: {
                     categoryId: parseInt(categoryId)
                 },
                 select: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    teamPrice: true,
-                    price: true,
-                    imageLink: true,
-                    categoryId: true,
-                    seller: {
+                    products: {
                         select: {
                             id: true,
-                            brandName: true
+                            name: true,
+                            description: true,
+                            teamPrice: true,
+                            price: true,
+                            imageLink: true,
+                            seller: {
+                                select: {
+                                    id: true,
+                                    brandName: true
+                                }
+                            }
                         }
                     }
                 }
             })
+            var products = sellerProducts.flatMap(sellerProduct => sellerProduct.products)
         }
 
         else {
@@ -48,7 +51,6 @@ const index = async (req: Request, res: Response) => {
                     teamPrice: true,
                     price: true,
                     imageLink: true,
-                    categoryId: true,
                     seller: {
                         select: {
                             id: true,
@@ -58,7 +60,6 @@ const index = async (req: Request, res: Response) => {
                 }
             })
         }
-
         res.json({ products: products })
     }
     catch (e) {
@@ -80,22 +81,28 @@ const show = async (req: HandleRequest, res: Response) => {
 }
 
 const create = async (req: Request, res: Response) => {
-    const createParams = productParams.safeParse(req.body)
-    if (!createParams.success) {
-        return res.status(422).json({ error: "Unable to create product" })
+    try {
+        const createParams = productParams.safeParse(req.body)
+        if (!createParams.success) {
+            return res.status(422).json({ error: "Unable to create product" })
+        }
+
+        const seller = await sellerPrisma.default.seller.sellerInfo(req.userId);
+
+        if (!seller) throw new Error('Invalid Seller')
+
+        const productDetails: IProduct = createParams.data.product;
+
+        const product = await prisma.product.add({ ...productDetails, sellerId: seller.id })
+        if (!product) {
+            return res.status(422).json({ error: "Unable to create product" })
+        }
+        res.json({ product: product })
     }
-
-    const seller = await sellerPrisma.default.seller.sellerInfo(req.userId);
-
-    if (!seller) throw new Error('Invalid Seller')
-
-    const productDetails: IProduct = createParams.data.product;
-
-    const product = await prisma.product.add({ ...productDetails, sellerId: seller.id })
-    if (!product) {
-        return res.status(422).json({ error: "Unable to create product" })
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message });
+        else res.status(422).json({ error: 'Unable upload product, please try again' })
     }
-    res.json({ product: product })
 }
 
 const uploadProductImage = async (req: HandleRequest, res: Response) => {
