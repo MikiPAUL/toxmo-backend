@@ -1,17 +1,23 @@
 import prisma from "../models/relationship";
 import { Request, Response } from "express";
-import currentUser from "../lib/utils/getCurrentUser";
 import { followParams } from "../lib/validations/user";
 import { User } from "@prisma/client";
 
 const followUser = async (req: Request, res: Response) => {
     try {
         const followRequest = followParams.safeParse(req.body);
+        const { type } = req.query
 
+        if (type !== 'follow' && type !== 'unfollow') throw new Error('Invalid follow type')
         if (!followRequest.success) throw new Error('Unable to follow the user')
         const followingId = followRequest.data.follow.userId;
 
-        const relationship = await prisma.relationship.followUser(req.userId, followingId);
+        if (type == 'follow') {
+            var relationship = await prisma.relationship.followUser(req.userId, followingId);
+        }
+        else {
+            relationship = await prisma.relationship.unFollowUser(req.userId, followingId);
+        }
 
         res.status(200).json({ relationship })
     }
@@ -55,6 +61,28 @@ const relationshipInfo = async (req: Request, res: Response) => {
     }
 }
 
+const following = async (req: Request, res: Response) => {
+    try {
+        const userId = req.query.userId as string;
+
+        if (!userId) throw new Error('Something went wrong')
+
+        const following = await prisma.relationship.findUnique({
+            where: {
+                followerId_followingId: {
+                    followerId: req.userId,
+                    followingId: parseInt(userId)
+                }
+            }
+        })
+        res.json({ isFollowing: !(following == null) })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to fetch user following' })
+    }
+}
+
 function serializeUser(user: User) {
     return {
         "id": user.id,
@@ -66,5 +94,6 @@ function serializeUser(user: User) {
 
 export {
     followUser,
-    relationshipInfo
+    relationshipInfo,
+    following
 }

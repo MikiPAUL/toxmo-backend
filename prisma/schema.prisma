@@ -28,8 +28,7 @@ model User {
 }
 
 model Seller {
-  id            Int          @id @default(autoincrement())
-  userId        Int          @unique
+  id            Int          @id
   brandName     String
   active        Boolean      @default(false)
   bio           String
@@ -40,7 +39,7 @@ model Seller {
   categoryId    Int
   products      Product[]
   category      Category     @relation(fields: [categoryId], references: [id])
-  user          User         @relation(fields: [userId], references: [id])
+  user          User         @relation(fields: [id], references: [id])
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   LiveStream    LiveStream[]
@@ -145,10 +144,10 @@ model LiveStream {
   description String?
   thumbnail   String?
   sellerId    Int
-  seller      Seller   @relation(fields: [sellerId], references: [id])
   expiresAt   DateTime @default(dbgenerated("(now() + '60 minutes'::interval minute)"))
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  Seller      Seller   @relation(fields: [sellerId], references: [id])
 }
 
 enum Gender {

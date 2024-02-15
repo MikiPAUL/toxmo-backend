@@ -59,7 +59,7 @@ const applyToSell = async (req: Request, res: Response) => {
 
         const seller = await prisma.seller.create({
             data: {
-                userId: req.userId,
+                id: req.userId,
                 ...sellerRequest.data.seller,
                 active: true
             }
@@ -99,7 +99,7 @@ const profile = async (req: Request, res: Response) => {
     try {
         const seller = await prisma.seller.findUnique({
             where: {
-                userId: req.userId
+                id: req.userId
             }
         })
         const user = await prisma.user.findUnique({

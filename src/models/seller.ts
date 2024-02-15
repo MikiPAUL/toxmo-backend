@@ -3,20 +3,24 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient().$extends({
     model: {
         seller: {
-            async sellerInfo(userId: number) {
+            async sellerInfo(id: number) {
                 return prisma.seller.findUnique({
                     where: {
-                        userId
+                        id
                     },
                     include: {
-                        products: true
+                        products: {
+                            include: {
+                                orders: true
+                            }
+                        }
                     }
                 })
             },
-            async shopReviews(userId: number) {
+            async shopReviews(id: number) {
                 return prisma.seller.findUnique({
                     where: {
-                        userId
+                        id
                     },
                     select: {
                         products: {
