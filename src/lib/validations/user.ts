@@ -14,7 +14,7 @@ const sellerParams = z.object({
         contactNumber: z.string(),
         storeAddress: z.string(),
         type: z.string(),
-        category: z.string(),
+        categoryId: z.number(),
         email: z.string()
     })
 })

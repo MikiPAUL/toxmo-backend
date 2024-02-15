@@ -5,9 +5,6 @@ const prisma = new PrismaClient().$extends({
         product: {
             async all() {
                 return prisma.product.findMany({
-                    include: {
-                        category: true
-                    }
                 })
             },
             async show(id: number) {
@@ -23,7 +20,6 @@ const prisma = new PrismaClient().$extends({
             async add(createParams: {
                 name: string,
                 price: number,
-                categoryId: number,
                 teamPrice: number,
                 teamSize: number,
                 sellerId: number,
