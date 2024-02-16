@@ -92,11 +92,31 @@ const create = async (req: Request, res: Response) => {
 const index = async (req: Request, res: Response) => {
     try {
         const user = await currentUser(req)
+        const orderStatus = req.query.orderStatus
         if (!user) return res.status(401).json({ error: "Unable to find the user" })
 
+        if (orderStatus === 'productDelivered') {
+            const orders = await prisma.order.findMany({
+                where: {
+                    userId: user.id,
+                    orderStatus: OrderStatus.productDelivered
+                },
+                include: {
+                    Product: {
+                        select: {
+                            id: true, description: true, imageLink: true, name: true, teamSize: true
+                        }
+                    }
+                }
+            })
+            return res.status(200).json({ orders })
+        }
         const orders = await prisma.order.findMany({
             where: {
-                userId: user.id
+                userId: user.id,
+                NOT: {
+                    orderStatus: OrderStatus.productDelivered
+                }
             },
             include: {
                 Product: {
