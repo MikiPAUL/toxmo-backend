@@ -1,6 +1,5 @@
 import prisma from "../models/seller";
 import relationshipPrisma from "../models/relationship";
-import { OrderStatus } from "@prisma/client";
 import { Request, Response } from "express";
 
 const shopReviews = async (req: Request, res: Response) => {

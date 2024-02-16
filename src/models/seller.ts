@@ -18,15 +18,18 @@ const prisma = new PrismaClient().$extends({
                 })
             },
             async shopReviews(id: number) {
-                return prisma.seller.findUnique({
+                const productIds = await prisma.product.findMany({
                     where: {
                         id
                     },
                     select: {
-                        products: {
-                            select: {
-                                reviews: true
-                            }
+                        id: true
+                    }
+                })
+                return prisma.review.findMany({
+                    where: {
+                        id: {
+                            in: productIds.map(productId => productId.id)
                         }
                     }
                 })
