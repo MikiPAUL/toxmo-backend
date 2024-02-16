@@ -20,7 +20,7 @@ const prisma = new PrismaClient().$extends({
             async shopReviews(id: number) {
                 const productIds = await prisma.product.findMany({
                     where: {
-                        id
+                        sellerId: id
                     },
                     select: {
                         id: true
