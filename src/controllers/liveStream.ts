@@ -2,7 +2,6 @@ import { Request, Response, response } from "express"
 import prisma from "../models/liveStream"
 import { liveStreamParams } from "../lib/validations/liveStream"
 import { User } from "@prisma/client"
-import { number } from "zod"
 
 interface HandleRequest extends Request {
     params: {
@@ -74,40 +73,22 @@ const edit = async (req: Request, res: Response) => {
 
 const index = async (req: Request, res: Response) => {
     try {
-        const followingSellers = await prisma.relationship.findMany({
+        const activeLiveStream = await prisma.liveStream.findMany({
             where: {
-                followerId: req.userId
+                expiresAt: {
+                    gt: new Date()
+                }
             },
-            select: {
-                follower: {
+            include: {
+                Seller: {
                     select: {
-                        seller: {
-                            select: {
-                                id: true
-                            }
-                        }
+                        id: true, brandName: true
                     }
                 }
             }
         })
 
-        const sellerIds: number[] = []
-        followingSellers.forEach((followingSeller) => {
-            const sellerId = followingSeller.follower.seller?.id
-            if (sellerId) sellerIds.push(sellerId)
-        })
-
-        const livestreams = await prisma.liveStream.findMany({
-            where: {
-                sellerId: {
-                    in: sellerIds
-                },
-                expiresAt: {
-                    gt: new Date()
-                }
-            }
-        })
-        res.status(200).json({ livestreams })
+        res.status(200).json({ livestreams: activeLiveStream })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

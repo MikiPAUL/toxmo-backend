@@ -11,7 +11,7 @@ const uploadImage = async (req: HandleRequest, res: Response) => {
     try {
         const file = req.file as Express.MulterS3.File;
         if (!file) throw new Error('Unable upload image, please try again');
-        const id = parseInt(req.params.id), resourceType = req.query.type
+        const id = parseInt(req.params.id), resourceType = req.query.resourceType
 
         if (resourceType === 'product' || resourceType === 'liveStream') {
             const field = (resourceType === 'product' ? 'imageLink' : 'thumbnail')
@@ -23,8 +23,9 @@ const uploadImage = async (req: HandleRequest, res: Response) => {
                     [field]: file.location
                 }
             })
-            res.status(200).json({ [resourceType]: response })
+            return res.status(200).json({ [resourceType]: response })
         }
+        throw new Error('Invalid resource type')
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message });
