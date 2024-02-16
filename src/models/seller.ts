@@ -28,7 +28,7 @@ const prisma = new PrismaClient().$extends({
                 })
                 return prisma.review.findMany({
                     where: {
-                        id: {
+                        productId: {
                             in: productIds.map(productId => productId.id)
                         }
                     }
