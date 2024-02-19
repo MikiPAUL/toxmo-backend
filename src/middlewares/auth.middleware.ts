@@ -19,4 +19,18 @@ const authUser = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-export { authUser }
+const authAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tenantId = req.headers['x-tenant'];
+
+        if (tenantId === 'admin') next()
+
+        else return res.status(401).json({ success: false, message: "Unauthorized" })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ success: false, message: "Unauthorized" })
+    }
+}
+
+export { authUser, authAdmin }

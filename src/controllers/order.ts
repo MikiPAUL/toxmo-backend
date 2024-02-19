@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import currentUser from '../lib/utils/getCurrentUser'
 import { orderParams } from '../lib/validations/order'
 import prisma from '../models/order'
-import { TeamStatus, OrderStatus } from "@prisma/client";
+import { TeamStatus, OrderStatus, PurchaseType } from "@prisma/client";
 import teamMemberPrisma from '../models/TeamMember'
 import productPrisma from '../models/product'
 import teamPrisma from '../models/team'
@@ -28,6 +28,7 @@ const create = async (req: Request, res: Response) => {
             })
             if (!productStockQuantity || productStockQuantity.stockQuantity <= 0) throw new Error('Out of stock')
             const order = await prisma.order.add(user.id, orderDetails)
+            await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
             const teamCount = await prisma.teamMember.count({
                 where: {
                     teamId: orderDetails.teamId,
@@ -65,14 +66,12 @@ const create = async (req: Request, res: Response) => {
                             teamStatus: TeamStatus.teamConfirmed
                         }
                     })
-                    await prisma.order.updateOrderStatus({ teamId: team.id, status: OrderStatus.productShipped })
+                    await prisma.order.updateOrderStatus({ teamId: team.id, status: OrderStatus.orderConfirmed })
                 }
             }
-            else if (!orderDetails.teamId) {
-                await prisma.order.updateOrderStatus({ orderId: order.id, status: OrderStatus.productShipped })
-            }
-            if (order.orderStatus == OrderStatus.orderPlaced) {
-                await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
+            if (orderDetails.purchaseType === PurchaseType.individual) {
+                const updatedOrder = await prisma.order.updateOrderStatus({ orderId: order.id, status: OrderStatus.orderConfirmed })
+                return { order: updatedOrder }
             }
             return { order }
         });
@@ -80,8 +79,14 @@ const create = async (req: Request, res: Response) => {
             return res.status(422).json({ error: "Unable to create order" })
         }
 
-        const teamMembersCount = await teamPrisma.team.teamMembersCount(orderDetails.teamId || -1)
-        res.status(201).json({ order: { ...order, teamMemberCount: teamMembersCount?._count.teamMembers || null } })
+        const teamMembers = await teamPrisma.team.teamMembersCount(orderDetails.teamId || -1)
+        res.status(201).json({
+            order: {
+                ...order,
+                teamMemberCount: teamMembers?._count.teamMembers || null,
+                expireAt: teamMembers?.expireAt || null
+            }
+        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -169,7 +174,3 @@ export {
     destroy,
     update
 }
-
-//if purchase Type is team
-// create team entry
-//list customers -> /join_teams -> show customers whose orderStatus is orderPlaced 

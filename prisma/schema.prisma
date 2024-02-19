@@ -169,6 +169,7 @@ enum PurchaseType {
 
 enum OrderStatus {
   orderPlaced
+  orderConfirmed
   productShipped
   productDelivered
 }
