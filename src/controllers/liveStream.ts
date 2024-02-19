@@ -3,12 +3,6 @@ import prisma from "../models/liveStream"
 import { liveStreamParams } from "../lib/validations/liveStream"
 import { User } from "@prisma/client"
 
-interface HandleRequest extends Request {
-    params: {
-        id: string
-    }
-}
-
 const create = async (req: Request, res: Response) => {
     try {
         const liveStreamReq = liveStreamParams.safeParse(req.body)
@@ -33,7 +27,7 @@ const create = async (req: Request, res: Response) => {
             }
         })
 
-        res.status(200).json({ liveStream: liveStream })
+        res.status(200).json({ liveStream })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

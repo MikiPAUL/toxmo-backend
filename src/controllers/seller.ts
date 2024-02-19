@@ -12,6 +12,7 @@ const shopReviews = async (req: Request, res: Response) => {
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
         else res.status(422).json({ error: 'Error while fetching shop reviews' })
+
     }
 }
 
@@ -34,7 +35,7 @@ const shopOrders = async (req: Request, res: Response) => {
         const userId: string = req.params.id;
         const orderStatus = req.query.status as string;
 
-        if (orderStatus === 'productShipped' || orderStatus === 'productDelivered') {
+        if (orderStatus === 'orderConfirmed' || orderStatus === 'productDelivered') {
             var orders = await prisma.seller.findMany({
                 where: {
                     id: parseInt(userId)
@@ -67,8 +68,30 @@ const shopOrders = async (req: Request, res: Response) => {
     }
 }
 
+const shopLive = async (req: Request, res: Response) => {
+    try {
+        const sellerId = req.params.id as string
+
+        const liveStream = await prisma.liveStream.findFirst({
+            where: {
+                sellerId: parseInt(sellerId),
+                expiresAt: {
+                    gt: new Date()
+                }
+            }
+        })
+
+        res.status(200).json({ liveStream })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Error while fetching shop orders' })
+    }
+}
+
 export {
     shopReviews,
     shopDetails,
-    shopOrders
+    shopOrders,
+    shopLive
 }

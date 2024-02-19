@@ -7,8 +7,9 @@ import * as categories from '../controllers/category'
 import * as orders from '../controllers/order'
 import * as relationships from '../controllers/relationship'
 import * as team from '../controllers/team'
+import * as admin from '../controllers/admin/index'
 import uploadImage from '../controllers/imageUpload'
-import { authUser } from '../middlewares/auth.middleware'
+import { authUser, authAdmin } from '../middlewares/auth.middleware'
 import uploadImageService from '../services/uploadImage'
 // import * as teamMember from '../controllers/teamMember'
 import * as liveStream from '../controllers/liveStream'
@@ -26,6 +27,7 @@ router.post('/api/seller', authUser, applyToSell)
 router.get('/api/seller/:id/details', authUser, seller.shopDetails)
 router.get('/api/seller/:id/orders', authUser, seller.shopOrders)
 router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
+router.get('/api/seller/:id/live', authUser, seller.shopLive)
 router.get('/api/me', authUser, profile)
 
 router.post('/api/user/follow', authUser, relationships.followUser)
@@ -56,4 +58,9 @@ router.patch('/api/livestream/:id', authUser, liveStream.edit)
 router.get('/api/livestream', authUser, liveStream.index)
 
 router.post('/api/uploadImage/:id', authUser, uploadImageService.single('image'), uploadImage)
+
+//admin
+router.get('/admin/api/orders', authAdmin, admin.orders.index)
+router.patch('/admin/api/orders/:id', authAdmin, admin.orders.update)
+
 export default router
