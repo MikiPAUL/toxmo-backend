@@ -67,8 +67,24 @@ const edit = async (req: Request, res: Response) => {
 
 const index = async (req: Request, res: Response) => {
     try {
+        const streamType = req.query.streamType as string
+        var sellerIds: number[] | undefined;
+        if (streamType == 'following') {
+            sellerIds = (await prisma.relationship.findMany({
+                where: {
+                    followerId: req.userId
+                },
+                select: {
+                    followingId: true
+                }
+            })).flatMap(seller => seller.followingId)
+        }
+
         const activeLiveStream = await prisma.liveStream.findMany({
             where: {
+                sellerId: {
+                    in: sellerIds
+                },
                 expiresAt: {
                     gt: new Date()
                 }
