@@ -31,6 +31,13 @@ const prisma = new PrismaClient().$extends({
                         productId: {
                             in: productIds.map(productId => productId.id)
                         }
+                    },
+                    include: {
+                        user: {
+                            select: {
+                                id: true, username: true
+                            }
+                        }
                     }
                 })
             },
