@@ -6,21 +6,83 @@ import { OrderStatus } from "@prisma/client";
 const index = async (req: Request, res: Response) => {
     try {
         const orderStatus = req.query.orderStatus as string
-        let orders: Order[] | null
+        let orders
 
         if (orderStatus === OrderStatus.orderPlaced || orderStatus === OrderStatus.orderConfirmed ||
             orderStatus === OrderStatus.productDelivered || orderStatus === OrderStatus.productShipped) {
-            orders = await prisma.order.findMany({
+            orders = await prisma.seller.findMany({
                 where: {
-                    orderStatus
+                    products: {
+                        some: {
+                            orders: {
+                                some: {
+                                    orderStatus
+                                }
+                            }
+                        }
+                    }
+                },
+                select: {
+                    id: true, brandName: true, products: {
+                        select: {
+                            orders: {
+                                where: {
+                                    orderStatus
+                                },
+                                select: {
+                                    id: true, createdAt: true, quantity: true, purchaseType: true, orderStatus: true, totalPrice: true,
+                                    user: {
+                                        select: {
+                                            username: true, phoneNumber: true, address: true
+                                        }
+                                    },
+                                    Product: {
+                                        select: {
+                                            name: true, imageLink: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             })
         }
         else {
-            orders = await prisma.order.findMany({})
+            orders = await prisma.seller.findMany({
+                select: {
+                    id: true, brandName: true, products: {
+                        select: {
+                            orders: {
+                                select: {
+                                    id: true, createdAt: true, quantity: true, purchaseType: true, orderStatus: true,
+                                    user: {
+                                        select: {
+                                            username: true, phoneNumber: true, address: true
+                                        }
+                                    },
+                                    Product: {
+                                        select: {
+                                            name: true, price: true, teamPrice: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            })
         }
 
-        res.status(200).json({ orders })
+        const modifiedOrders = orders.map((shopOrder) => {
+            return {
+                id: shopOrder.id,
+                sellerStoreName: shopOrder.brandName,
+                orders: shopOrder.products.flatMap(product => product.orders)
+            }
+        })
+
+        res.status(200).json({ orders: modifiedOrders })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

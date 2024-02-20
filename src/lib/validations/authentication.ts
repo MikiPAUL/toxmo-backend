@@ -13,7 +13,15 @@ const verifyotpParams = z.object({
     })
 })
 
+const adminLoginParams = z.object({
+    auth: z.object({
+        username: z.string(),
+        password: z.string()
+    })
+})
+
 export {
     authParams,
-    verifyotpParams
+    verifyotpParams,
+    adminLoginParams
 };
