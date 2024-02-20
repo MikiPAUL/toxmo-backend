@@ -50,13 +50,18 @@ const shopOrders = async (req: Request, res: Response) => {
                             }
                         },
                         select: {
-                            id: true, name: true, imageLink: true, description: true, _count: {
+                            id: true, name: true, imageLink: true, description: true,
+                            orders: {
+                                where: {
+                                    orderStatus
+                                },
                                 select: {
-                                    orders: {
-                                        where: {
-                                            orderStatus
+                                    id: true, createdAt: true, quantity: true, purchaseType: true, orderStatus: true, totalPrice: true,
+                                    user: {
+                                        select: {
+                                            username: true, phoneNumber: true, address: true
                                         }
-                                    }
+                                    },
                                 }
                             }
                         }
@@ -66,7 +71,7 @@ const shopOrders = async (req: Request, res: Response) => {
             // const totalOrders = orderProducts.reduce((total, product) => {
             //     return product._count.orders + total
             // }, 0)
-            return res.json({ orders: orders.flatMap(order => order.products) })
+            return res.json({ products: orders.flatMap(order => order.products) })
         }
         throw new Error('Invalid order status')
     }
