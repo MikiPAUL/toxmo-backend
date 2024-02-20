@@ -16,6 +16,11 @@ const index = async (req: Request, res: Response) => {
                 },
                 select: {
                     products: {
+                        where: {
+                            stockQuantity: {
+                                gt: 0
+                            }
+                        },
                         select: {
                             id: true,
                             name: true,
@@ -38,6 +43,11 @@ const index = async (req: Request, res: Response) => {
 
         else {
             var products = await prisma.product.findMany({
+                where: {
+                    stockQuantity: {
+                        gt: 0
+                    }
+                },
                 select: {
                     id: true,
                     name: true,
