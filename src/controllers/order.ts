@@ -112,6 +112,9 @@ const index = async (req: Request, res: Response) => {
                             id: true, description: true, imageLink: true, name: true, teamSize: true
                         }
                     }
+                },
+                orderBy: {
+                    createdAt: 'desc'
                 }
             })
             return res.status(200).json({ orders })
@@ -129,6 +132,9 @@ const index = async (req: Request, res: Response) => {
                         id: true, description: true, imageLink: true, name: true, teamSize: true
                     }
                 }
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
         })
         const response = orders.map(async (order) => {
