@@ -60,6 +60,8 @@ router.get('/api/livestream', authUser, liveStream.index)
 router.post('/api/uploadImage/:id', authUser, uploadImageService.single('image'), uploadImage)
 
 //admin
+router.post('/admin/api/auth/login', admin.auth.signIn)
+
 router.get('/admin/api/orders', authAdmin, admin.orders.index)
 router.patch('/admin/api/orders/:id', authAdmin, admin.orders.update)
 

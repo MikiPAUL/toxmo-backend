@@ -68,6 +68,9 @@ const edit = async (req: Request, res: Response) => {
 const index = async (req: Request, res: Response) => {
     try {
         const streamType = req.query.streamType as string
+        const queryCategory = req.query.categoryId as string
+        const categoryId: number | undefined = parseInt(queryCategory) || undefined
+
         var sellerIds: number[] | undefined;
         if (streamType == 'following') {
             sellerIds = (await prisma.relationship.findMany({
@@ -84,6 +87,9 @@ const index = async (req: Request, res: Response) => {
             where: {
                 sellerId: {
                     in: sellerIds
+                },
+                Seller: {
+                    categoryId
                 },
                 expiresAt: {
                     gt: new Date()
