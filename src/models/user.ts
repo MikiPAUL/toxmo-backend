@@ -1,4 +1,5 @@
 import { PrismaClient, Gender } from '@prisma/client'
+import moment from 'moment'
 
 const prisma = new PrismaClient().$extends({
   model: {
@@ -30,8 +31,7 @@ const prisma = new PrismaClient().$extends({
       },
 
       async storeOTP(userId: number, otp: string) {
-        const date = new Date();
-        date.setMinutes(date.getMinutes() + 1)
+        const date = moment().utcOffset("+05:30").add(1, 'minute').format()
         return prisma.user.update({
           where: {
             id: userId
@@ -48,7 +48,7 @@ const prisma = new PrismaClient().$extends({
             phoneNumber: phoneNumber,
             otp: parseInt(otp),
             otpExpireAt: {
-              gt: new Date()
+              gt: moment().utcOffset("+05:30").format()
             }
           }
         })

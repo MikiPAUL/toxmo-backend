@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import moment from "moment";
 
 const prisma = new PrismaClient().$extends({
     model: {
@@ -10,8 +11,26 @@ const prisma = new PrismaClient().$extends({
                     },
                     include: {
                         products: {
-                            include: {
-                                orders: true
+                            where: {
+                                stockQuantity: {
+                                    gt: 0
+                                }
+                            }
+                        }
+                    }
+                })
+            },
+            async outOfStockQuantity(id: number) {
+                return prisma.seller.findUnique({
+                    where: {
+                        id
+                    },
+                    select: {
+                        products: {
+                            where: {
+                                stockQuantity: {
+                                    lte: 0
+                                }
                             }
                         }
                     }
@@ -45,7 +64,7 @@ const prisma = new PrismaClient().$extends({
                 return prisma.liveStream.findMany({
                     where: {
                         expiresAt: {
-                            gt: new Date()
+                            gt: moment().utcOffset("+05:30").format()
                         }
                     },
                     select: {

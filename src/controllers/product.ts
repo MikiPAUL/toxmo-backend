@@ -2,8 +2,7 @@ import { Request, Response } from "express"
 import prisma from "../models/product";
 import relationshipPrisma from "../models/relationship";
 import * as sellerPrisma from "../models/seller";
-import { productParams, productReviewParams } from "../lib/validations/product"
-import IProduct from "seller";
+import { productParams, productReviewParams, productUpdateParams } from "../lib/validations/product"
 
 const index = async (req: Request, res: Response) => {
     try {
@@ -100,7 +99,7 @@ const create = async (req: Request, res: Response) => {
 
         if (!seller) throw new Error('Invalid Seller')
 
-        const productDetails: IProduct = createParams.data.product;
+        const productDetails = createParams.data.product;
 
         const product = await prisma.product.add({ ...productDetails, sellerId: seller.id })
         if (!product) {
@@ -135,9 +134,63 @@ const addReview = async (req: Request, res: Response) => {
     }
 }
 
+const update = async (req: Request, res: Response) => {
+    try {
+        const productRequest = productUpdateParams.safeParse(req.body)
+        const productId = req.params.id
+        if (!productRequest.success) return res.status(422).json({ error: 'Invalid request body' })
+
+        const productDetails = productRequest.data.product
+        const product = await prisma.product.update({
+            where: {
+                id: parseInt(productId)
+            },
+            data: {
+                ...productDetails
+            }
+        })
+        res.status(200).json({ product })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message });
+        else res.status(422).json({ error: 'Unable to update product details' });
+    }
+}
+
+const reviews = async (req: Request, res: Response) => {
+    try {
+        const productId = req.params.id as string
+
+        const productReviews = await prisma.product.findUnique({
+            where: {
+                id: parseInt(productId)
+            },
+            select: {
+                reviews: {
+                    select: {
+                        description: true, rating: true,
+                        user: {
+                            select: {
+                                id: true, username: true
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        res.status(422).json({ reviews: productReviews?.reviews })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to get product reviews' })
+    }
+}
+
 export {
     index,
     show,
+    update,
     create,
-    addReview
+    addReview,
+    reviews
 }

@@ -2,6 +2,7 @@ import { Request, Response, response } from "express"
 import prisma from "../models/liveStream"
 import { liveStreamParams } from "../lib/validations/liveStream"
 import { User } from "@prisma/client"
+import moment from 'moment'
 
 const create = async (req: Request, res: Response) => {
     try {
@@ -92,7 +93,7 @@ const index = async (req: Request, res: Response) => {
                     categoryId
                 },
                 expiresAt: {
-                    gt: new Date()
+                    gt: moment().utcOffset("+05:30").format()
                 }
             },
             include: {

@@ -1,6 +1,7 @@
 import prisma from "../models/seller";
 import relationshipPrisma from "../models/relationship";
 import { Request, Response } from "express";
+import moment from "moment";
 
 const shopReviews = async (req: Request, res: Response) => {
     try {
@@ -21,8 +22,9 @@ const shopDetails = async (req: Request, res: Response) => {
         const id = req.params.id as string;
 
         const shopDetails = await prisma.seller.sellerInfo(parseInt(id));
+        const outOfStocks = await prisma.seller.outOfStockQuantity(parseInt(id))
         const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, parseInt(id))
-        res.json({ seller: { ...shopDetails, isFollowing } })
+        res.json({ seller: { ...shopDetails, outOfStocks: outOfStocks?.products, isFollowing } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -89,7 +91,7 @@ const shopLive = async (req: Request, res: Response) => {
             where: {
                 sellerId: parseInt(sellerId),
                 expiresAt: {
-                    gt: new Date()
+                    gt: moment().utcOffset("+05:30").format()
                 }
             }
         })

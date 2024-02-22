@@ -22,7 +22,7 @@ model User {
   teamMembers TeamMember[]
   followers   Relationship[] @relation("follower")
   followings  Relationship[] @relation("following")
-  createdAt   DateTime       @default(now())
+  createdAt   DateTime       @default(dbgenerated("NOW()"))
   updatedAt   DateTime       @updatedAt
   Review      Review[]
 }
@@ -40,7 +40,7 @@ model Seller {
   products      Product[]
   category      Category     @relation(fields: [categoryId], references: [id])
   user          User         @relation(fields: [id], references: [id])
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime     @default(dbgenerated("NOW()"))
   updatedAt     DateTime     @updatedAt
   LiveStream    LiveStream[]
 }
@@ -51,7 +51,7 @@ model Relationship {
   followingId Int
   follower    User     @relation("follower", fields: [followerId], references: [id])
   following   User     @relation("following", fields: [followingId], references: [id])
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(dbgenerated("NOW()"))
   updatedAt   DateTime @updatedAt
 
   @@unique([followerId, followingId])
@@ -60,7 +60,7 @@ model Relationship {
 model Category {
   id           Int      @id @default(autoincrement())
   categoryName String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime @default(dbgenerated("NOW()"))
   updatedAt    DateTime @updatedAt
   Seller       Seller[]
 }
@@ -79,7 +79,7 @@ model Product {
   orders        Order[]
   reviews       Review[]
   seller        Seller   @relation(fields: [sellerId], references: [id])
-  createdAt     DateTime @default(now())
+  createdAt     DateTime @default(dbgenerated("NOW()"))
   updatedAt     DateTime @updatedAt
 }
 
@@ -91,7 +91,7 @@ model Review {
   description String?
   product     Product  @relation(fields: [productId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(dbgenerated("NOW()"))
   updatedAt   DateTime @updatedAt
 }
 
@@ -106,7 +106,7 @@ model Team {
   teamMembers TeamMember[]
   Product     Product?     @relation(fields: [productId], references: [id])
   Order       Order[]
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime     @default(dbgenerated("NOW()"))
   updatedAt   DateTime     @updatedAt
 }
 
@@ -116,7 +116,7 @@ model TeamMember {
   userId    Int
   team      Team     @relation(fields: [teamId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(dbgenerated("NOW()"))
   updatedAt DateTime @updatedAt
 
   @@unique([teamId, userId])
@@ -134,7 +134,7 @@ model Order {
   team         Team?        @relation(fields: [teamId], references: [id])
   user         User         @relation(fields: [userId], references: [id])
   Product      Product?     @relation(fields: [productId], references: [id])
-  createdAt    DateTime     @default(now())
+  createdAt    DateTime     @default(dbgenerated("NOW()"))
   updatedAt    DateTime     @updatedAt
 }
 
@@ -145,7 +145,7 @@ model LiveStream {
   thumbnail   String?
   sellerId    Int
   expiresAt   DateTime @default(dbgenerated("(now() + '60 minutes'::interval minute)"))
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(dbgenerated("NOW()"))
   updatedAt   DateTime @updatedAt
   Seller      Seller   @relation(fields: [sellerId], references: [id])
 }
@@ -172,4 +172,5 @@ enum OrderStatus {
   orderConfirmed
   productShipped
   productDelivered
+  orderExpired
 }

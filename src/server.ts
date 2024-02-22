@@ -2,6 +2,7 @@ import express from 'express';
 import router from './routes/index'
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+import { weeklyReportScheduler } from './lib/jobs/updateTeamStatus';
 dotenv.config({ path: __dirname + '/../.env', debug: true });
 
 
@@ -14,6 +15,8 @@ declare global {
 }
 
 const app = express()
+
+weeklyReportScheduler.start()
 
 app.use(bodyParser.json())
 

@@ -11,6 +11,17 @@ const productParams = z.object({
     })
 })
 
+const productUpdateParams = z.object({
+    product: z.object({
+        name: z.string().optional(),
+        price: z.number().optional(),
+        description: z.string().optional(),
+        teamPrice: z.number().optional(),
+        teamSize: z.number().optional(),
+        stockQuantity: z.number().optional()
+    })
+})
+
 const productReviewParams = z.object({
     review: z.object({
         productId: z.number(),
@@ -21,5 +32,6 @@ const productReviewParams = z.object({
 
 export {
     productParams,
-    productReviewParams
+    productReviewParams,
+    productUpdateParams
 }

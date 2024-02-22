@@ -35,8 +35,10 @@ router.get('/api/user/:id/relationship', authUser, relationships.relationshipInf
 
 router.get('/api/products', authUser, products.index)
 router.get('/api/products/:id', authUser, products.show)
+router.put('/api/products/:id', authUser, products.update)
 router.post('/api/products', authUser, products.create)
 router.post('/api/products/:id/reviews', authUser, products.addReview);
+router.get('/api/products/:id/reviews', authUser, products.reviews);
 
 router.get('/api/category', authUser, categories.index)
 router.post('/api/category', authUser, categories.create)
