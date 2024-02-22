@@ -1,4 +1,5 @@
-import { PrismaClient, TeamStatus } from "@prisma/client";
+import { OrderStatus, PrismaClient, TeamStatus } from "@prisma/client";
+import moment from "moment";
 
 const prisma = new PrismaClient().$extends({
     model: {
@@ -40,7 +41,7 @@ const prisma = new PrismaClient().$extends({
                     where: {
                         productId,
                         expireAt: {
-                            gte: new Date()
+                            gte: moment().utcOffset("+05:30").format()
                         },
                         teamStatus: TeamStatus.teamCreated,
                         NOT: {
@@ -51,6 +52,68 @@ const prisma = new PrismaClient().$extends({
                             }
                         }
                     },
+                })
+            },
+            async updateTeamExpireStatus() {
+                await prisma.$transaction(async (prisma) => {
+                    const teamId = (await prisma.team.findMany({
+                        where: {
+                            expireAt: {
+                                lte: moment().utcOffset("+05:30").format()
+                            },
+                            NOT: {
+                                teamStatus: TeamStatus.teamExpired
+                            }
+                        },
+                        select: {
+                            id: true
+                        }
+                    })).flatMap(team => team.id)
+                    await prisma.team.updateMany({
+                        where: {
+                            id: {
+                                in: teamId
+                            }
+                        },
+                        data: {
+                            teamStatus: TeamStatus.teamExpired
+                        }
+                    })
+                    await prisma.order.updateMany({
+                        where: {
+                            teamId: {
+                                in: teamId
+                            }
+                        },
+                        data: {
+                            orderStatus: OrderStatus.orderExpired
+                        }
+                    })
+                    const productQuantities = await prisma.order.groupBy({
+                        by: ['productId'],
+                        _sum: {
+                            quantity: true
+                        },
+                        where: {
+                            teamId: {
+                                in: teamId
+                            }
+                        }
+                    })
+                    const updateStocks = productQuantities.map(async (productQuantity) => {
+                        if (!productQuantity.productId || !productQuantity._sum.quantity) return
+                        await prisma.product.update({
+                            where: {
+                                id: productQuantity.productId
+                            },
+                            data: {
+                                stockQuantity: {
+                                    increment: productQuantity._sum.quantity
+                                }
+                            }
+                        })
+                    })
+                    await Promise.all(updateStocks)
                 })
             }
         }

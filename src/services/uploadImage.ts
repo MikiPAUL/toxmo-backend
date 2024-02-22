@@ -2,6 +2,7 @@ import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { S3Client } from '@aws-sdk/client-s3';
 import path from 'node:path';
+import moment from 'moment';
 
 const s3 = new S3Client({
     credentials: {
@@ -19,7 +20,7 @@ const s3Storage = multerS3({
         cb(null, { fieldname: file.fieldname })
     },
     key: (_, file, cb) => {
-        const fileName = Date.now() + "_" + file.fieldname + "_" + file.originalname;
+        const fileName = moment().utcOffset("+05:30").add(1, 'minute').format() + "_" + file.fieldname + "_" + file.originalname;
         cb(null, fileName);
     }
 });
