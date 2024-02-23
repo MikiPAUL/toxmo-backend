@@ -168,7 +168,7 @@ const reviews = async (req: Request, res: Response) => {
             select: {
                 reviews: {
                     select: {
-                        description: true, rating: true,
+                        description: true, rating: true, createdAt: true,
                         user: {
                             select: {
                                 id: true, username: true

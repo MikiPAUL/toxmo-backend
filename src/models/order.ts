@@ -14,13 +14,6 @@ const prisma = new PrismaClient().$extends({
                     data: {
                         userId,
                         ...orderDetails
-                    },
-                    include: {
-                        Product: {
-                            select: {
-                                id: true, description: true, imageLink: true, name: true, teamSize: true
-                            }
-                        }
                     }
                 })
             },
@@ -34,10 +27,29 @@ const prisma = new PrismaClient().$extends({
                     }
                 })
             },
-            async find_by(order_id: number) {
-                return prisma.order.findUnique({
+            async orderDetails(orderIds: number[]) {
+                return prisma.order.findMany({
                     where: {
-                        id: order_id
+                        id: {
+                            in: orderIds
+                        }
+                    },
+                    include: {
+                        Product: {
+                            select: {
+                                id: true, description: true, imageLink: true, name: true, teamSize: true
+                            }
+                        },
+                        team: {
+                            select: {
+                                expireAt: true, _count: {
+                                    select: { teamMembers: true }
+                                }
+                            }
+                        }
+                    },
+                    orderBy: {
+                        id: 'desc'
                     }
                 })
             },

@@ -45,7 +45,7 @@ router.post('/api/category', authUser, categories.create)
 
 router.get('/api/orders', authUser, orders.index)
 router.post('/api/orders', authUser, orders.create)
-router.get('/api/orders/:id', authUser, orders.show)
+// router.get('/api/orders/:id', authUser, orders.show)
 router.delete('/api/orders/:id', authUser, orders.destroy)
 router.put('/api/orders/:id', authUser, orders.update)
 

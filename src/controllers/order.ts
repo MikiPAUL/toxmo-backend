@@ -6,6 +6,16 @@ import { TeamStatus, OrderStatus, PurchaseType } from "@prisma/client";
 import teamMemberPrisma from '../models/TeamMember'
 import productPrisma from '../models/product'
 import teamPrisma from '../models/team'
+import { IOrderDetails } from 'order';
+
+const serializeOrder = (order: IOrderDetails) => {
+    const { team, ...orderDetail } = order
+    return {
+        ...orderDetail,
+        expireAt: team?.expireAt || null,
+        teamMemberCount: team?._count.teamMembers || null
+    }
+}
 
 const create = async (req: Request, res: Response) => {
     try {
@@ -17,7 +27,7 @@ const create = async (req: Request, res: Response) => {
             return res.status(422).json({ error: "Unable to create order" })
         }
         const orderDetails = orderRequest.data.order;
-        const { order } = await prisma.$transaction(async (prisma) => {
+        const { orderId } = await prisma.$transaction(async (prisma) => {
             const productStockQuantity = await prisma.product.findUnique({
                 where: {
                     id: orderDetails.productId
@@ -70,23 +80,15 @@ const create = async (req: Request, res: Response) => {
                 }
             }
             if (orderDetails.purchaseType === PurchaseType.individual) {
-                const updatedOrder = await prisma.order.updateOrderStatus({ orderId: order.id, status: OrderStatus.orderConfirmed })
-                return { order: updatedOrder }
+                await prisma.order.updateOrderStatus({ orderId: order.id, status: OrderStatus.orderConfirmed })
             }
-            return { order }
+            return { orderId: order.id }
         });
+        const order = (await prisma.order.orderDetails([orderId])).at(0)
         if (!order) {
             return res.status(422).json({ error: "Unable to create order" })
         }
-
-        const teamMembers = await teamPrisma.team.teamMembersCount(orderDetails.teamId || -1)
-        res.status(201).json({
-            order: {
-                ...order,
-                teamMemberCount: teamMembers?._count.teamMembers || null,
-                expireAt: teamMembers?.expireAt || null
-            }
-        })
+        res.status(201).json({ order: serializeOrder(order) })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -101,48 +103,35 @@ const index = async (req: Request, res: Response) => {
         if (!user) return res.status(401).json({ error: "Unable to find the user" })
 
         if (orderStatus === 'productDelivered') {
-            const orders = await prisma.order.findMany({
+            const orderIds = (await prisma.order.findMany({
                 where: {
                     userId: user.id,
                     orderStatus: OrderStatus.productDelivered
                 },
-                include: {
-                    Product: {
-                        select: {
-                            id: true, description: true, imageLink: true, name: true, teamSize: true
-                        }
-                    }
+                select: {
+                    id: true,
                 },
                 orderBy: {
-                    createdAt: 'desc'
+                    id: 'desc'
                 }
-            })
-            return res.status(200).json({ orders })
+            })).flatMap(order => order.id)
+            const orders = await prisma.order.orderDetails(orderIds)
+            return res.status(200).json({ orders: orders.map(order => serializeOrder(order)) })
         }
-        const orders = await prisma.order.findMany({
+        const orderIds = (await prisma.order.findMany({
             where: {
                 userId: user.id,
                 NOT: {
                     orderStatus: OrderStatus.productDelivered
                 }
             },
-            include: {
-                Product: {
-                    select: {
-                        id: true, description: true, imageLink: true, name: true, teamSize: true
-                    }
-                }
-            },
-            orderBy: {
-                createdAt: 'desc'
+            select: {
+                id: true
             }
-        })
-        const response = orders.map(async (order) => {
-            const teamMembersCount = await teamPrisma.team.teamMembersCount(order.teamId || -1)
-            return { ...order, teamMemberCount: teamMembersCount?._count.teamMembers || null }
-        })
+        })).flatMap(order => order.id)
+        const orders = await prisma.order.orderDetails(orderIds)
 
-        res.status(200).json({ orders: await Promise.all(response) })
+        res.status(200).json({ orders: orders.map(order => serializeOrder(order)) })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -156,15 +145,15 @@ const update = async (req: Request, res: Response) => {
 
 }
 
-const show = async (req: Request, res: Response) => {
-    const user = await currentUser(req)
-    if (!user) return res.status(422).json({ error: "Unable to find the user" })
-    const order_id = parseInt(req.params.id);
-    const order = await prisma.order.find_by(order_id)
+// const show = async (req: Request, res: Response) => {
+//     const user = await currentUser(req)
+//     if (!user) return res.status(422).json({ error: "Unable to find the user" })
+//     const order_id = parseInt(req.params.id);
+//     const order = await prisma.order.find_by(order_id)
 
-    if (!order) return res.status(422).json({ error: "Unable to find the order" })
-    res.json({ order: order })
-}
+//     if (!order) return res.status(422).json({ error: "Unable to find the order" })
+//     res.json({ order: order })
+// }
 
 const destroy = async (req: Request, res: Response) => {
     const user = await currentUser(req)
@@ -176,7 +165,7 @@ const destroy = async (req: Request, res: Response) => {
 export {
     create,
     index,
-    show,
+    // show,
     destroy,
     update
 }
