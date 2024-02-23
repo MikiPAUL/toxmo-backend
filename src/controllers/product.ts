@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import prisma from "../models/product";
 import relationshipPrisma from "../models/relationship";
 import * as sellerPrisma from "../models/seller";
-import { productParams, productReviewParams, productUpdateParams } from "../lib/validations/product"
+import { productParams, productUpdateParams } from "../lib/validations/product"
 
 const index = async (req: Request, res: Response) => {
     try {
@@ -113,27 +113,6 @@ const create = async (req: Request, res: Response) => {
     }
 }
 
-const addReview = async (req: Request, res: Response) => {
-    try {
-        const productReviewRequest = productReviewParams.safeParse(req.body);
-        if (!productReviewRequest.success) throw new Error('Unable to add review to the product');
-
-        const review = await prisma.review.create({
-            data: {
-                userId: req.userId, ...productReviewRequest.data.review
-            }
-        });
-
-        if (!review) throw new Error('Unable to add review to the product');
-
-        res.status(200).json(review)
-    }
-    catch (e) {
-        if (e instanceof Error) res.status(422).json({ error: e.message });
-        else res.status(422).json({ error: 'Unable to add review to the product' });
-    }
-}
-
 const update = async (req: Request, res: Response) => {
     try {
         const productRequest = productUpdateParams.safeParse(req.body)
@@ -191,6 +170,5 @@ export {
     show,
     update,
     create,
-    addReview,
     reviews
 }

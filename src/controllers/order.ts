@@ -7,6 +7,7 @@ import teamMemberPrisma from '../models/TeamMember'
 import productPrisma from '../models/product'
 import teamPrisma from '../models/team'
 import { IOrderDetails } from 'order';
+import type { Review } from '@prisma/client'
 
 const serializeOrder = (order: IOrderDetails) => {
     const { team, ...orderDetail } = order
@@ -101,6 +102,7 @@ const index = async (req: Request, res: Response) => {
         const user = await currentUser(req)
         const orderStatus = req.query.orderStatus
         if (!user) return res.status(401).json({ error: "Unable to find the user" })
+        const orderReviews: Map<number, boolean> = new Map()
 
         if (orderStatus === 'productDelivered') {
             const orderIds = (await prisma.order.findMany({
@@ -109,14 +111,21 @@ const index = async (req: Request, res: Response) => {
                     orderStatus: OrderStatus.productDelivered
                 },
                 select: {
-                    id: true,
+                    id: true, review: true
                 },
                 orderBy: {
                     id: 'desc'
                 }
-            })).flatMap(order => order.id)
+            })).flatMap(order => {
+                orderReviews.set(order.id, order.review !== null)
+                return order.id
+            })
             const orders = await prisma.order.orderDetails(orderIds)
-            return res.status(200).json({ orders: orders.map(order => serializeOrder(order)) })
+            return res.status(200).json({
+                orders: orders.map(order => {
+                    return { ...serializeOrder(order), hasReview: orderReviews.get(order.id) }
+                })
+            })
         }
         const orderIds = (await prisma.order.findMany({
             where: {
@@ -126,12 +135,19 @@ const index = async (req: Request, res: Response) => {
                 }
             },
             select: {
-                id: true
+                id: true, review: true
             }
-        })).flatMap(order => order.id)
+        })).flatMap(order => {
+            orderReviews.set(order.id, order.review !== null)
+            return order.id
+        })
         const orders = await prisma.order.orderDetails(orderIds)
 
-        res.status(200).json({ orders: orders.map(order => serializeOrder(order)) })
+        res.status(200).json({
+            orders: orders.map(order => {
+                return { ...serializeOrder(order), hasReview: orderReviews.get(order.id) }
+            })
+        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

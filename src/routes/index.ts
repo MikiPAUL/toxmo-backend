@@ -13,6 +13,7 @@ import { authUser, authAdmin } from '../middlewares/auth.middleware'
 import uploadImageService from '../services/uploadImage'
 // import * as teamMember from '../controllers/teamMember'
 import * as liveStream from '../controllers/liveStream'
+import * as reviews from '../controllers/review'
 
 const router = Router();
 
@@ -37,8 +38,9 @@ router.get('/api/products', authUser, products.index)
 router.get('/api/products/:id', authUser, products.show)
 router.put('/api/products/:id', authUser, products.update)
 router.post('/api/products', authUser, products.create)
-router.post('/api/products/:id/reviews', authUser, products.addReview);
 router.get('/api/products/:id/reviews', authUser, products.reviews);
+
+router.post('/api/reviews', authUser, reviews.create)
 
 router.get('/api/category', authUser, categories.index)
 router.post('/api/category', authUser, categories.create)
