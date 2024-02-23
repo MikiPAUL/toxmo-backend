@@ -157,7 +157,7 @@ const reviews = async (req: Request, res: Response) => {
                 }
             }
         })
-        res.status(422).json({ reviews: productReviews?.reviews })
+        res.status(200).json({ reviews: productReviews?.reviews })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
