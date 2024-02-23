@@ -22,7 +22,7 @@ ALTER TABLE "Product" ALTER COLUMN "createdAt" SET DEFAULT NOW();
 ALTER TABLE "Relationship" ALTER COLUMN "createdAt" SET DEFAULT NOW();
 
 -- AlterTable
-ALTER TABLE "Review" ADD COLUMN     "orderId" INTEGER NOT NULL,
+ALTER TABLE "Review" ADD COLUMN     "orderId" INTEGER,
 ALTER COLUMN "createdAt" SET DEFAULT NOW();
 
 -- AlterTable
