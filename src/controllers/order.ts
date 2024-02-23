@@ -26,7 +26,7 @@ const create = async (req: Request, res: Response) => {
                     stockQuantity: true
                 }
             })
-            if (!productStockQuantity || productStockQuantity.stockQuantity <= 0) throw new Error('Out of stock')
+            if (!productStockQuantity || productStockQuantity.stockQuantity < orderDetails.quantity) throw new Error('Out of stock')
             const order = await prisma.order.add(user.id, orderDetails)
             await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
             const teamCount = await prisma.teamMember.count({
