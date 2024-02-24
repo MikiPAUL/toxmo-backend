@@ -1,4 +1,4 @@
-import { Request, Response, response } from "express"
+import { Request, Response } from "express"
 import prisma from "../models/liveStream"
 import { liveStreamParams } from "../lib/validations/liveStream"
 import { User } from "@prisma/client"
@@ -73,7 +73,7 @@ const index = async (req: Request, res: Response) => {
         const categoryId: number | undefined = parseInt(queryCategory) || undefined
 
         var sellerIds: number[] | undefined;
-        if (streamType == 'following') {
+        if (streamType === 'following') {
             sellerIds = (await prisma.relationship.findMany({
                 where: {
                     followerId: req.userId
@@ -98,6 +98,7 @@ const index = async (req: Request, res: Response) => {
             },
             include: {
                 Seller: {
+
                     select: {
                         id: true, brandName: true
                     }

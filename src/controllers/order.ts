@@ -46,6 +46,8 @@ const create = async (req: Request, res: Response) => {
                     userId: req.userId
                 }
             })
+            const teamMemberCount = await prisma.teamMember.count({ where: { teamId: orderDetails.teamId } })
+            if (teamCount === 1 && teamMemberCount > 1) throw new Error('Already joined this team!!!')
             if (orderDetails.teamId && teamCount == 0) {
                 const team = await prisma.team.findUnique({
                     where: {
