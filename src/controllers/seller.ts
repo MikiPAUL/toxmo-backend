@@ -1,7 +1,6 @@
 import prisma from "../models/seller";
 import relationshipPrisma from "../models/relationship";
 import { Request, Response } from "express";
-import moment from "moment";
 
 const shopReviews = async (req: Request, res: Response) => {
     try {
@@ -91,7 +90,7 @@ const shopLive = async (req: Request, res: Response) => {
             where: {
                 sellerId: parseInt(sellerId),
                 expiresAt: {
-                    gt: moment().utcOffset("+05:30").format()
+                    gt: (new Date()).toUTCString()
                 }
             }
         })

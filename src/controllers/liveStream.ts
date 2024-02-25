@@ -1,8 +1,6 @@
 import { Request, Response } from "express"
 import prisma from "../models/liveStream"
 import { liveStreamParams } from "../lib/validations/liveStream"
-import { User } from "@prisma/client"
-import moment from 'moment'
 
 const create = async (req: Request, res: Response) => {
     try {
@@ -93,12 +91,11 @@ const index = async (req: Request, res: Response) => {
                     categoryId
                 },
                 expiresAt: {
-                    gt: moment().utcOffset("+05:30").format()
+                    gt: (new Date()).toUTCString()
                 }
             },
             include: {
                 Seller: {
-
                     select: {
                         id: true, brandName: true
                     }
@@ -113,18 +110,6 @@ const index = async (req: Request, res: Response) => {
         else res.status(422).json({ error: 'Unable to get livestream details' })
     }
 }
-
-function serializeUser(user: User) {
-    return {
-        "id": user.id,
-        "username": user.username,
-        "avatar": user.avatar,
-        "address": user.address,
-        "phoneNumber": user.phoneNumber,
-        "gender": user.gender,
-    }
-}
-
 
 export {
     create,

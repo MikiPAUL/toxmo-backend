@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import moment from "moment";
 
 const prisma = new PrismaClient().$extends({
     model: {
@@ -64,7 +63,7 @@ const prisma = new PrismaClient().$extends({
                 return prisma.liveStream.findMany({
                     where: {
                         expiresAt: {
-                            gt: moment().utcOffset("+05:30").format()
+                            gt: (new Date()).toUTCString()
                         }
                     },
                     select: {

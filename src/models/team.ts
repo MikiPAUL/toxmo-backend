@@ -1,5 +1,4 @@
 import { OrderStatus, PrismaClient, TeamStatus } from "@prisma/client";
-import moment from "moment";
 
 const prisma = new PrismaClient().$extends({
     model: {
@@ -41,7 +40,7 @@ const prisma = new PrismaClient().$extends({
                     where: {
                         productId,
                         expireAt: {
-                            gte: moment().utcOffset("+05:30").format()
+                            gte: (new Date()).toUTCString()
                         },
                         teamStatus: TeamStatus.teamCreated,
                         NOT: {
@@ -59,7 +58,7 @@ const prisma = new PrismaClient().$extends({
                     const teamId = (await prisma.team.findMany({
                         where: {
                             expireAt: {
-                                lte: moment().utcOffset("+05:30").format()
+                                lte: (new Date()).toUTCString()
                             },
                             NOT: {
                                 teamStatus: TeamStatus.teamExpired
