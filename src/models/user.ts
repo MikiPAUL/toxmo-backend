@@ -48,7 +48,7 @@ const prisma = new PrismaClient().$extends({
             phoneNumber: phoneNumber,
             otp: parseInt(otp),
             otpExpireAt: {
-              gt: (new Date()).toUTCString()
+              gt: new Date()
             }
           }
         })

@@ -63,7 +63,7 @@ const prisma = new PrismaClient().$extends({
                 return prisma.liveStream.findMany({
                     where: {
                         expiresAt: {
-                            gt: (new Date()).toUTCString()
+                            gt: new Date()
                         }
                     },
                     select: {

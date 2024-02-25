@@ -52,7 +52,7 @@ const edit = async (req: Request, res: Response) => {
                 id: parseInt(req.params.id)
             },
             data: {
-                expiresAt: (new Date()).toUTCString()
+                expiresAt: new Date()
             }
         })
 
@@ -91,7 +91,7 @@ const index = async (req: Request, res: Response) => {
                     categoryId
                 },
                 expiresAt: {
-                    gt: (new Date()).toUTCString()
+                    gt: new Date()
                 }
             },
             include: {

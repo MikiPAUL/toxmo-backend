@@ -40,7 +40,7 @@ const prisma = new PrismaClient().$extends({
                     where: {
                         productId,
                         expireAt: {
-                            gte: (new Date()).toUTCString()
+                            gte: new Date()
                         },
                         teamStatus: TeamStatus.teamCreated,
                         NOT: {
@@ -58,7 +58,7 @@ const prisma = new PrismaClient().$extends({
                     const teamId = (await prisma.team.findMany({
                         where: {
                             expireAt: {
-                                lte: (new Date()).toUTCString()
+                                lte: new Date()
                             },
                             NOT: {
                                 teamStatus: TeamStatus.teamExpired

@@ -90,7 +90,7 @@ const shopLive = async (req: Request, res: Response) => {
             where: {
                 sellerId: parseInt(sellerId),
                 expiresAt: {
-                    gt: (new Date()).toUTCString()
+                    gt: new Date()
                 }
             }
         })
