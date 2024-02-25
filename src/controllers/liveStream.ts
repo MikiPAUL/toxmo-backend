@@ -52,7 +52,7 @@ const edit = async (req: Request, res: Response) => {
                 id: parseInt(req.params.id)
             },
             data: {
-                expiresAt: new Date(liveStreamReq.data.liveStream.expiresAt).toISOString()
+                expiresAt: (new Date()).toUTCString()
             }
         })
 
