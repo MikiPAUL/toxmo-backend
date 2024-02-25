@@ -86,11 +86,11 @@ model Product {
 model Review {
   id          Int      @id @default(autoincrement())
   productId   Int
-  orderId     Int      @unique
+  orderId     Int?     @unique
   userId      Int
   rating      Float
   description String?
-  order       Order    @relation(fields: [orderId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
   product     Product  @relation(fields: [productId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
