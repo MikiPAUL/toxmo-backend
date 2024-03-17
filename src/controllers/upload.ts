@@ -33,5 +33,22 @@ const uploadImage = async (req: HandleRequest, res: Response) => {
     }
 }
 
+const uploadVideo = async (req: Request, res: Response) => {
+    try {
+        const file = req.file as Express.MulterS3.File
+        if (!file) throw new Error('Unable upload image, please try again')
 
-export default uploadImage
+        res.status(200).json({
+            video: {
+                url: file.location
+            }
+        })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to upload video, please try again' })
+    }
+}
+
+
+export { uploadImage, uploadVideo }

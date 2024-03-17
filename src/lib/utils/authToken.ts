@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { JwtPayload } from '../types/authentication'
 
-const generateToken = (user_id: number, randomInt: number) => {
-    const token = jwt.sign({ userId: user_id, randomInt }, process.env['TOKEN_SECRET_KEY'] || "secret_key", {})
+const generateToken = (userId: number, randomInt: number) => {
+    const token = jwt.sign({ userId, randomInt }, process.env['TOKEN_SECRET_KEY'] || "secret_key", {})
     return token
 }
 

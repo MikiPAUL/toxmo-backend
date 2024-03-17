@@ -8,9 +8,10 @@ import * as orders from '../controllers/order'
 import * as relationships from '../controllers/relationship'
 import * as team from '../controllers/team'
 import * as admin from '../controllers/admin/index'
-import uploadImage from '../controllers/imageUpload'
+import * as upload from '../controllers/upload'
+import * as bit from '../controllers/bit'
 import { authUser, authAdmin } from '../middlewares/auth.middleware'
-import uploadImageService from '../services/uploadImage'
+import uploadImageService from '../services/aws-s3'
 // import * as teamMember from '../controllers/teamMember'
 import * as liveStream from '../controllers/liveStream'
 import * as reviews from '../controllers/review'
@@ -61,7 +62,14 @@ router.post('/api/livestream', authUser, liveStream.create)
 router.patch('/api/livestream/:id', authUser, liveStream.edit)
 router.get('/api/livestream', authUser, liveStream.index)
 
-router.post('/api/uploadImage/:id', authUser, uploadImageService.single('image'), uploadImage)
+router.post('/api/upload/video', authUser, uploadImageService.single('video'), upload.uploadVideo)
+
+router.post('/api/bits', authUser, bit.create)
+router.get('/api/bits', authUser, bit.index)
+router.get('/api/bits/:id', authUser, bit.show)
+router.delete('/api/bits/:id', authUser, bit.destroy)
+router.patch('/api/bits/:id/toggleLike', authUser, bit.toggleLike)
+router.post('/api/uploadImage/:id', authUser, uploadImageService.single('image'), upload.uploadImage)
 
 //admin
 router.post('/admin/api/auth/login', admin.auth.signIn)
