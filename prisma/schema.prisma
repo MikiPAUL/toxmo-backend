@@ -178,6 +178,16 @@ model VideoLike {
   @@id([userId, videoId])
 }
 
+model WaitList {
+  id          Int      @id @default(autoincrement())
+  name        String
+  location    String
+  email       String   @unique
+  phoneNumber String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum Gender {
   MALE
   FEMALE

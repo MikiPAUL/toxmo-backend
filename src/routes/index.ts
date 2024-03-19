@@ -10,6 +10,7 @@ import * as team from '../controllers/team'
 import * as admin from '../controllers/admin/index'
 import * as upload from '../controllers/upload'
 import * as bit from '../controllers/bit'
+import * as waitList from '../controllers/webapp/waitList'
 import { authUser, authAdmin } from '../middlewares/auth.middleware'
 import uploadImageService from '../services/aws-s3'
 // import * as teamMember from '../controllers/teamMember'
@@ -76,5 +77,8 @@ router.post('/admin/api/auth/login', admin.auth.signIn)
 
 router.get('/admin/api/orders', authAdmin, admin.orders.index)
 router.patch('/admin/api/orders/:id', authAdmin, admin.orders.update)
+
+//webapp
+router.post('/api/waitList', waitList.create)
 
 export default router
