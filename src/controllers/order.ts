@@ -7,7 +7,6 @@ import teamMemberPrisma from '../models/TeamMember'
 import productPrisma from '../models/product'
 import teamPrisma from '../models/team'
 import { IOrderDetails } from 'order';
-import type { Review } from '@prisma/client'
 
 const serializeOrder = (order: IOrderDetails) => {
     const { team, ...orderDetail } = order

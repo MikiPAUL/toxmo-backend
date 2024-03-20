@@ -23,11 +23,15 @@ const shopDetails = async (req: Request, res: Response) => {
         const shopDetails = await prisma.seller.sellerInfo(parseInt(id));
         const outOfStocks = await prisma.seller.outOfStockQuantity(parseInt(id))
         const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, parseInt(id))
+        res.json({ seller: { ...shopDetails, outOfStocks: outOfStocks?.products, isFollowing } })
         res.json({
             seller: {
-                shopDetails: shopDetails?.products.map(product => {
-                    return { ...product, imageLink: `${process.env['CDN_URL']}/${product.imageLink}` }
-                }), outOfStocks: outOfStocks?.products, isFollowing
+                shopDetails: {
+                    ...shopDetails,
+                    products: shopDetails?.products.map(shopDetail => {
+                        return { ...shopDetail, imageLink: `${process.env['CDN_URL']}/${shopDetail.imageLink}` }
+                    })
+                }, outOfStocks: outOfStocks?.products, isFollowing
             }
         })
     }
