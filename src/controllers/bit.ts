@@ -77,7 +77,7 @@ const show = async (req: Request, res: Response) => {
         res.status(200).json({
             bit: {
                 id: bit.id,
-                url: bit.url,
+                url: `${process.env['CDN_URL']}/${bit.url}`,
                 createdAt: bit.createdAt,
                 productId: bit.product.id,
                 price: bit.product.teamPrice,
