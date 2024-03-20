@@ -56,8 +56,8 @@ const index = async (req: Request, res: Response) => {
             })
         }
         res.status(200).json({
-            bits: bits.map(bits => {
-                return { id: bits.id, url: `${process.env['CDN_URL']}/${bits.url}` }
+            bits: bits.map(bit => {
+                return { id: bit.id, url: `${process.env['CDN_URL']}/${bit.url}` }
             })
         })
     }
