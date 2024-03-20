@@ -22,13 +22,13 @@ const create = async (req: Request, res: Response) => {
 const index = async (req: Request, res: Response) => {
     try {
         const sellerId = req.query.sellerId as string
-        var bitsId: { id: number, url: string }[] = []
+        var bits: { id: number, url: string }[] = []
 
         if (sellerId) {
             const stockCondition = req.query.stockCondition as string
             const stockQuantity = (stockCondition === 'active' ? { gt: 0 } : { lte: 0 })
 
-            bitsId = await prisma.video.findMany({
+            bits = await prisma.video.findMany({
                 where: {
                     product: {
                         stockQuantity,
@@ -46,7 +46,7 @@ const index = async (req: Request, res: Response) => {
             })
         }
         else {
-            bitsId = await prisma.video.findMany({
+            bits = await prisma.video.findMany({
                 select: {
                     id: true, url: true
                 },
@@ -55,7 +55,11 @@ const index = async (req: Request, res: Response) => {
                 }
             })
         }
-        res.status(200).json({ bits: bitsId })
+        res.status(200).json({
+            bits: bits.map(bits => {
+                return { id: bits.id, url: `${process.env['CDN_URL']}/${bits.url}` }
+            })
+        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

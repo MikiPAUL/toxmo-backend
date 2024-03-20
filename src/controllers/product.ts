@@ -3,6 +3,7 @@ import prisma from "../models/product";
 import relationshipPrisma from "../models/relationship";
 import * as sellerPrisma from "../models/seller";
 import { productParams, productUpdateParams } from "../lib/validations/product"
+import { IProductDetails } from "product";
 
 const index = async (req: Request, res: Response) => {
     try {
@@ -63,7 +64,11 @@ const index = async (req: Request, res: Response) => {
                 }
             })
         }
-        res.json({ products: products })
+        res.json({
+            products: products.map(product => {
+                return { ...product, imageLink: `${process.env['CDN_URL']}/${product.imageLink}` }
+            })
+        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -74,13 +79,12 @@ const index = async (req: Request, res: Response) => {
 const show = async (req: Request, res: Response) => {
     try {
         const productId = parseInt(req.params.id)
-        const product: { [k: string]: any } | null = await prisma.product.show(productId)
+        const product: IProductDetails | null = await prisma.product.show(productId)
 
         if (!product) return res.status(404).json({ error: 'Product not found ' })
 
         const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, product.sellerId)
-        product.seller['isFollowing'] = isFollowing
-        res.json({ product: { ...product } })
+        res.json({ product: { ...product, seller: { ...product.seller, isFollowing }, imageLink: `${process.env['CDN_URL']}/${product.imageLink}` } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
