@@ -20,7 +20,7 @@ const uploadImage = async (req: HandleRequest, res: Response) => {
                     id
                 },
                 data: {
-                    [field]: file.originalname
+                    [field]: file.key
                 }
             })
             return res.status(200).json({ [resourceType]: response })
@@ -40,7 +40,7 @@ const uploadVideo = async (req: Request, res: Response) => {
 
         res.status(200).json({
             video: {
-                url: file.originalname
+                url: file.key
             }
         })
     }
