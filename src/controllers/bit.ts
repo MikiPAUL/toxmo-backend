@@ -55,11 +55,7 @@ const index = async (req: Request, res: Response) => {
                 }
             })
         }
-        res.status(200).json({
-            bits: bits.map(bit => {
-                return { id: bit.id, url: `${process.env['CDN_URL']}/${bit.url}` }
-            })
-        })
+        res.status(200).json({ bits })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -77,7 +73,7 @@ const show = async (req: Request, res: Response) => {
         res.status(200).json({
             bit: {
                 id: bit.id,
-                url: `${process.env['CDN_URL']}/${bit.url}`,
+                url: bit.url,
                 createdAt: bit.createdAt,
                 productId: bit.product.id,
                 price: bit.product.teamPrice,

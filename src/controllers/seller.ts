@@ -29,7 +29,7 @@ const shopDetails = async (req: Request, res: Response) => {
                 shopDetails: {
                     ...shopDetails,
                     products: shopDetails?.products.map(shopDetail => {
-                        return { ...shopDetail, imageLink: `${process.env['CDN_URL']}/${shopDetail.imageLink}` }
+                        return { ...shopDetail }
                     })
                 }, outOfStocks: outOfStocks?.products, isFollowing
             }

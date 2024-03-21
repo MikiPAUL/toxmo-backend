@@ -66,7 +66,7 @@ const index = async (req: Request, res: Response) => {
         }
         res.json({
             products: products.map(product => {
-                return { ...product, imageLink: `${process.env['CDN_URL']}/${product.imageLink}` }
+                return { ...product }
             })
         })
     }
@@ -84,7 +84,7 @@ const show = async (req: Request, res: Response) => {
         if (!product) return res.status(404).json({ error: 'Product not found ' })
 
         const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, product.sellerId)
-        res.json({ product: { ...product, seller: { ...product.seller, isFollowing }, imageLink: `${process.env['CDN_URL']}/${product.imageLink}` } })
+        res.json({ product: { ...product, seller: { ...product.seller, isFollowing } } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

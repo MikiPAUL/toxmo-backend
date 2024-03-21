@@ -7,6 +7,11 @@ interface HandleRequest extends Request {
     }
 }
 
+const generateUrl = (url: string | null | undefined) => {
+    if (!url) return null
+    return `${process.env['CDN_URL']}/${url}`
+}
+
 const uploadImage = async (req: HandleRequest, res: Response) => {
     try {
         const file = req.file as Express.MulterS3.File;
@@ -20,7 +25,7 @@ const uploadImage = async (req: HandleRequest, res: Response) => {
                     id
                 },
                 data: {
-                    [field]: file.key
+                    [field]: generateUrl(file.key)
                 }
             })
             return res.status(200).json({ [resourceType]: response })
@@ -40,7 +45,7 @@ const uploadVideo = async (req: Request, res: Response) => {
 
         res.status(200).json({
             video: {
-                url: file.key
+                url: generateUrl(file.key)
             }
         })
     }
