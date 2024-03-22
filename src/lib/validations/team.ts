@@ -9,7 +9,9 @@ const formTeamParams = z.object({
 
 const createTeamParams = z.object({
     team: z.object({
-        productId: z.number()
+        productId: z.number(),
+        quantity: z.number(),
+        totalPrice: z.number()
     })
 })
 

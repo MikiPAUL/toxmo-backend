@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createTeamParams } from "../lib/validations/team";
 import prisma from "../models/team";
+import orderPrisma from '../models/order'
 import teamMemberPrisma from "../models/TeamMember";
 
 const createTeam = async (req: Request, res: Response) => {
@@ -10,25 +11,19 @@ const createTeam = async (req: Request, res: Response) => {
 
         const { productId } = parsedParams.data.team;
 
-        const { newTeam, newTeamMember } = await prisma.$transaction(async (prisma) => {
+        const { newTeam, newTeamMember, orderId } = await prisma.$transaction(async (prisma) => {
             const newTeam = await prisma.team.createTeam(productId);
             const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, req.userId);
+            const order = await orderPrisma.order.add(req.userId, { ...parsedParams.data.team, purchaseType: 'team' })
 
-            return { newTeam, newTeamMember };
+            return { newTeam, newTeamMember, orderId: order.id }
         });
-
+        const order = (await orderPrisma.order.orderDetails([orderId])).at(0)
         if (!newTeam) throw new Error('Unable to create team')
         else if (!newTeamMember) throw new Error('Unable to join team')
+        else if (!order) throw new Error('Unable to create order')
 
-        const teamDetails = await prisma.team.findUnique({
-            where: {
-                id: newTeam.id
-            },
-            include: {
-                teamMembers: true
-            }
-        })
-        res.status(200).json({ team: teamDetails })
+        res.status(200).json({ order })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e });
