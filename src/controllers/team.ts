@@ -19,7 +19,17 @@ const createTeam = async (req: Request, res: Response) => {
         const parsedParams = createTeamParams.safeParse(req.body);
         if (!parsedParams.success) throw new Error('Unable to create team')
 
-        const { productId } = parsedParams.data.team;
+        const { productId, quantity } = parsedParams.data.team;
+
+        const productStockQuantity = await prisma.product.findUnique({
+            where: {
+                id: productId
+            },
+            select: {
+                stockQuantity: true
+            }
+        })
+        if (!productStockQuantity || productStockQuantity.stockQuantity < quantity) throw new Error('Out of stock')
 
         const { newTeam, newTeamMember, orderId } = await prisma.$transaction(async (prisma) => {
             const newTeam = await prisma.team.createTeam(productId);
