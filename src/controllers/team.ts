@@ -3,6 +3,16 @@ import { createTeamParams } from "../lib/validations/team";
 import prisma from "../models/team";
 import orderPrisma from '../models/order'
 import teamMemberPrisma from "../models/TeamMember";
+import { IOrderDetails } from "order";
+
+const serializeOrder = (order: IOrderDetails) => {
+    const { team, ...orderDetail } = order
+    return {
+        ...orderDetail,
+        expireAt: team?.expireAt || null,
+        teamMemberCount: team?._count.teamMembers || null
+    }
+}
 
 const createTeam = async (req: Request, res: Response) => {
     try {
@@ -14,7 +24,7 @@ const createTeam = async (req: Request, res: Response) => {
         const { newTeam, newTeamMember, orderId } = await prisma.$transaction(async (prisma) => {
             const newTeam = await prisma.team.createTeam(productId);
             const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, req.userId);
-            const order = await orderPrisma.order.add(req.userId, { ...parsedParams.data.team, purchaseType: 'team' })
+            const order = await orderPrisma.order.add(req.userId, { ...parsedParams.data.team, purchaseType: 'team', teamId: newTeam.id })
 
             return { newTeam, newTeamMember, orderId: order.id }
         });
@@ -23,7 +33,7 @@ const createTeam = async (req: Request, res: Response) => {
         else if (!newTeamMember) throw new Error('Unable to join team')
         else if (!order) throw new Error('Unable to create order')
 
-        res.status(200).json({ order })
+        res.status(200).json({ order: serializeOrder(order) })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e });
