@@ -47,6 +47,13 @@ const index = async (req: Request, res: Response) => {
         }
         else {
             bits = await prisma.video.findMany({
+                where: {
+                    product: {
+                        stockQuantity: {
+                            gt: 0
+                        }
+                    }
+                },
                 select: {
                     id: true, url: true
                 },
