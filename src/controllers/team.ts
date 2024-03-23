@@ -3,6 +3,7 @@ import { createTeamParams } from "../lib/validations/team";
 import prisma from "../models/team";
 import orderPrisma from '../models/order'
 import teamMemberPrisma from "../models/TeamMember";
+import productPrisma from "../models/product";
 import { IOrderDetails } from "order";
 
 const serializeOrder = (order: IOrderDetails) => {
@@ -35,6 +36,7 @@ const createTeam = async (req: Request, res: Response) => {
             const newTeam = await prisma.team.createTeam(productId);
             const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, req.userId);
             const order = await orderPrisma.order.add(req.userId, { ...parsedParams.data.team, purchaseType: 'team', teamId: newTeam.id })
+            await productPrisma.product.reduceStockQuantity(productId, quantity)
 
             return { newTeam, newTeamMember, orderId: order.id }
         });
