@@ -81,7 +81,7 @@ const create = async (req: Request, res: Response) => {
                     await prisma.order.updateOrderStatus({ teamId: team.id, status: OrderStatus.orderConfirmed })
                 }
             }
-            if (orderDetails.purchaseType === PurchaseType.individual) {
+            if (orderDetails.purchaseType == PurchaseType.individual) {
                 await prisma.order.updateOrderStatus({ orderId: order.id, status: OrderStatus.orderConfirmed })
             }
             return { orderId: order.id }
