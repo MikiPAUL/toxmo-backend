@@ -24,16 +24,7 @@ const shopDetails = async (req: Request, res: Response) => {
         const outOfStocks = await prisma.seller.outOfStockQuantity(parseInt(id))
         const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, parseInt(id))
 
-        res.json({
-            seller: {
-                shopDetails: {
-                    ...shopDetails,
-                    products: shopDetails?.products.map(shopDetail => {
-                        return { ...shopDetail }
-                    })
-                }, outOfStocks: outOfStocks?.products, isFollowing
-            }
-        })
+        res.json({ seller: { ...shopDetails, outOfStocks: outOfStocks?.products, isFollowing } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
