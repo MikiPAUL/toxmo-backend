@@ -77,21 +77,21 @@ export const logger = winston.createLogger({
     }), json()),
     transports: [
         new winston.transports.DailyRotateFile({
-            filename: 'info-%DATE%.log',
+            filename: 'logs/info-%DATE%.log',
             datePattern: 'YYYY-MM-DD',
             maxFiles: '14d',
             level: 'info',
             zippedArchive: true
         }),
         new winston.transports.DailyRotateFile({
-            filename: 'error-%DATE%.log',
+            filename: 'logs/error-%DATE%.log',
             datePattern: 'YYYY-MM-DD',
             maxFiles: '14d',
             level: 'error',
             zippedArchive: true
         }),
         new winston.transports.DailyRotateFile({
-            filename: 'http-%DATE%.log',
+            filename: 'logs/http-%DATE%.log',
             datePattern: 'YYYY-MM-DD',
             maxFiles: '14d',
             level: 'http',
