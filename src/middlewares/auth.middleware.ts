@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from "express";
-import { validateToken } from '../lib/utils/authToken';
-import currentUser from "../lib/utils/getCurrentUser";
+import { Request, Response, NextFunction } from "express"
+import { validateToken } from '../lib/utils/authToken'
+import currentUser from "../lib/utils/getCurrentUser"
 
 const authUser = async (req: Request, res: Response, next: NextFunction) => {
     try {

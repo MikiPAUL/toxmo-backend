@@ -6,7 +6,7 @@ import { weeklyReportScheduler } from './lib/jobs/updateTeamStatus'
 import winston from 'winston'
 import morgan from 'morgan'
 import { IncomingMessage } from 'http'
-import 'winston-daily-rotate-file';
+import 'winston-daily-rotate-file'
 dotenv.config({ path: __dirname + '/../.env', debug: true })
 
 declare global {
@@ -18,7 +18,18 @@ declare global {
 }
 
 interface IncomingMessageReq extends IncomingMessage {
-    body?: string
+    body?: string,
+    userId?: number
+}
+
+interface ILogData {
+    method: string | undefined,
+    url: string | undefined,
+    status: string | undefined,
+    contentLength: string | undefined,
+    responseTime: string | undefined,
+    requestBody?: string,
+    userId?: number
 }
 
 const app = express()
@@ -29,17 +40,19 @@ app.use(bodyParser.json())
 
 const morganMiddleware = morgan(
     (tokens, req, res) => {
-        const logData = {
+        const logData: ILogData = {
             method: tokens.method(req, res),
             url: tokens.url(req, res),
             status: tokens.status(req, res),
-            requestBody: '',
             contentLength: tokens.res(req, res, 'content-length'),
             responseTime: tokens['response-time'](req, res),
         }
         const incomingReq: IncomingMessageReq = req
         if (incomingReq.body) {
             logData.requestBody = incomingReq.body
+        }
+        if (incomingReq.userId) {
+            logData.userId = incomingReq.userId
         }
         return JSON.stringify(logData)
     },
@@ -64,9 +77,10 @@ export const logger = winston.createLogger({
     }), json()),
     transports: [
         new winston.transports.DailyRotateFile({
-            filename: 'combined-%DATE%.log',
+            filename: 'info-%DATE%.log',
             datePattern: 'YYYY-MM-DD',
             maxFiles: '14d',
+            level: 'info',
             zippedArchive: true
         }),
         new winston.transports.DailyRotateFile({
@@ -80,7 +94,8 @@ export const logger = winston.createLogger({
             filename: 'http-%DATE%.log',
             datePattern: 'YYYY-MM-DD',
             maxFiles: '14d',
-            level: 'http'
+            level: 'http',
+            zippedArchive: true
         })
     ]
 })
