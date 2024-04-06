@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import prisma from "../models/product";
+import prisma from "../models/product"
 
 interface HandleRequest extends Request {
     params: {

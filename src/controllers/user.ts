@@ -3,6 +3,7 @@ import { userParams, sellerParams, editProfileParams } from '../lib/validations/
 import prisma from '../models/user';
 import type { User } from '@prisma/client'
 import sendOtp from '../services/verifyOTP';
+import {logger} from '../server'
 
 const createUser = async (req: Request, res: Response) => {
     try {
@@ -107,6 +108,7 @@ const profile = async (req: Request, res: Response) => {
                 id: req.userId
             }
         })
+        logger.info(user)
         if (!user) return;
         res.json({
             user: { ...serializeUser(user), seller }

@@ -16,7 +16,7 @@ const prisma = new PrismaClient().$extends({
                         id
                     },
                     select: {
-                        id: true, url: true, createdAt: true, product: {
+                        id: true, url: true, createdAt: true, thumbnailUrl: true, product: {
                             select: {
                                 id: true, teamPrice: true,
                                 seller: {
@@ -43,6 +43,16 @@ const prisma = new PrismaClient().$extends({
                         userId_videoId: {
                             userId, videoId
                         }
+                    }
+                })
+            },
+            updateThumbnailUrl(videoId: number, thumbnailUrl: string) {
+                return prisma.video.update({
+                    data: {
+                        thumbnailUrl
+                    },
+                    where: {
+                        id: videoId
                     }
                 })
             }

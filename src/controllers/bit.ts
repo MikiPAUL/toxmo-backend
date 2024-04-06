@@ -2,6 +2,12 @@ import { Request, Response } from "express"
 import { bitParams } from "../lib/validations/bit"
 import prisma from "../models/video"
 import { deleteFile } from "../services/aws-s3"
+import queue from "../services/bgService"
+
+const generateUrl = (url: string | null | undefined) => {
+    if (!url) return null
+    return `${process.env['CDN_URL']}/${url}`
+}
 
 const create = async (req: Request, res: Response) => {
     try {
@@ -9,9 +15,15 @@ const create = async (req: Request, res: Response) => {
         if (!bitRequest.success) throw new Error('invalid params')
 
         const { url, productId } = bitRequest.data.bit
-        const bit = await prisma.video.add(url, productId)
+        const originalName = url.split('/').pop() || url
+        const bit = await prisma.video.add(originalName, productId)
+        const queueOptions = {
+            attempts: 5,
+            backoff: 5000
+        }
+        await queue.add({ fileLocation: url, videoId: bit.id }, queueOptions)
 
-        res.status(200).json(bit)
+        res.status(200).json({ bit: { ...bit, url } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -22,7 +34,7 @@ const create = async (req: Request, res: Response) => {
 const index = async (req: Request, res: Response) => {
     try {
         const sellerId = req.query.sellerId as string
-        var bits: { id: number, url: string }[] = []
+        var bits: { id: number, url: string, thumbnailUrl: string | null }[] = []
 
         if (sellerId) {
             const stockCondition = req.query.stockCondition as string
@@ -38,7 +50,7 @@ const index = async (req: Request, res: Response) => {
                     }
                 },
                 select: {
-                    id: true, url: true
+                    id: true, url: true, thumbnailUrl: true
                 },
                 orderBy: {
                     createdAt: 'desc'
@@ -55,14 +67,20 @@ const index = async (req: Request, res: Response) => {
                     }
                 },
                 select: {
-                    id: true, url: true
+                    id: true, url: true, thumbnailUrl: true
                 },
                 orderBy: {
                     createdAt: 'desc'
                 }
             })
         }
-        res.status(200).json({ bits })
+        res.status(200).json({
+            bits: bits.map(bit => {
+                return {
+                    ...bit, url: generateUrl(bit.url), thumbnailUrl: generateUrl(bit.thumbnailUrl)
+                }
+            })
+        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -80,7 +98,8 @@ const show = async (req: Request, res: Response) => {
         res.status(200).json({
             bit: {
                 id: bit.id,
-                url: bit.url,
+                url: generateUrl(bit.url),
+                thumbnailUrl: generateUrl(bit.thumbnailUrl),
                 createdAt: bit.createdAt,
                 productId: bit.product.id,
                 price: bit.product.teamPrice,

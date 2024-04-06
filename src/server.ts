@@ -102,7 +102,6 @@ export const logger = winston.createLogger({
 
 app.use(router)
 
-
 app.listen(process.env.PORT, () => {
-    logger.info(`app listening on port ${process.env.PORT}`);
-});
+    logger.http(`app listening on port ${process.env.PORT}`);
+})

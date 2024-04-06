@@ -12,7 +12,7 @@ const scheduleOptions: ScheduleOptions = {
 const scheduleAction = async () => {
     const currentDate = new Date();
     await prisma.team.updateTeamExpireStatus()
-    logger.info(`Build and send the weekly report - ${currentDate.getHours()}:${currentDate.getMinutes()}`);
+    logger.info(`Update team expire status - ${currentDate.getHours()}:${currentDate.getMinutes()}`);
 };
 
 const weeklyReportScheduler = cron.schedule('* 30 23 * * *', scheduleAction, scheduleOptions);
