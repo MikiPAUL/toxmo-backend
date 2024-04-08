@@ -7,6 +7,7 @@ import winston from 'winston'
 import morgan from 'morgan'
 import { IncomingMessage } from 'http'
 import 'winston-daily-rotate-file'
+import cors from 'cors'
 dotenv.config({ path: __dirname + '/../.env', debug: true })
 
 declare global {
@@ -35,6 +36,14 @@ interface ILogData {
 const app = express()
 
 weeklyReportScheduler.start()
+
+const corsOptions = {
+    AccessControlAllowOrigin: '*',
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE'
+}
+
+app.use(cors(corsOptions))
 
 app.use(bodyParser.json())
 
