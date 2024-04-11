@@ -4,9 +4,36 @@ import prisma from "../models/video"
 import { deleteFile } from "../services/aws-s3"
 import queue from "../services/bgService"
 
+interface IBit {
+    id: number,
+    url: string | null,
+    thumbnailUrl: string | null
+}
+
 const generateUrl = (url: string | null | undefined) => {
     if (!url) return null
     return `${process.env['CDN_URL']}/${url}`
+}
+
+const shuffle = (t: IBit[]) => {
+    let last = t.length
+    let n
+    while (last > 0) {
+        n = rand(last)
+        swap(t, n, --last)
+    }
+    return
+}
+
+const rand = (n: number) => {
+    return 0 | Math.random() * n
+}
+
+const swap = (t: IBit[], i: number, j: number) => {
+    let q = t[i]
+    t[i] = t[j]
+    t[j] = q
+    return t
 }
 
 const create = async (req: Request, res: Response) => {
@@ -34,7 +61,7 @@ const create = async (req: Request, res: Response) => {
 const index = async (req: Request, res: Response) => {
     try {
         const sellerId = req.query.sellerId as string
-        var bits: { id: number, url: string, thumbnailUrl: string | null }[] = []
+        var bits: IBit[] = []
 
         if (sellerId) {
             const stockCondition = req.query.stockCondition as string
@@ -74,6 +101,7 @@ const index = async (req: Request, res: Response) => {
                 }
             })
         }
+        shuffle(bits)
         res.status(200).json({
             bits: bits.map(bit => {
                 return {
