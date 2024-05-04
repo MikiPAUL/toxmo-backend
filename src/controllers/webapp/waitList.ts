@@ -16,6 +16,19 @@ const create = async (req: Request, res: Response) => {
     }
 }
 
+const index = async (req: Request, res: Response) => {
+    try {
+        const users = await prisma.waitList.findMany()
+
+        res.status(200).json({ users })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: 'Unable to get waitlist users' })
+        else res.status(422).json({ error: 'Something went wrong' })
+    }
+}
+
 export {
-    create
+    create,
+    index
 }

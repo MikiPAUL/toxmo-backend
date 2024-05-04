@@ -15,7 +15,8 @@ const prisma = new PrismaClient().$extends({
                                     gt: 0
                                 }
                             }
-                        }
+                        },
+                        address: true
                     }
                 })
             },

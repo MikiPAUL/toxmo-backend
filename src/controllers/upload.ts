@@ -1,15 +1,11 @@
 import { Request, Response } from "express"
 import prisma from "../models/product"
+import { generateUrl } from "../lib/utils/generateUrl"
 
 interface HandleRequest extends Request {
     params: {
         id: string
     }
-}
-
-const generateUrl = (url: string | null | undefined) => {
-    if (!url) return null
-    return `${process.env['CDN_URL']}/${url}`
 }
 
 const uploadImage = async (req: HandleRequest, res: Response) => {
@@ -43,10 +39,14 @@ const uploadVideo = async (req: Request, res: Response) => {
         const file = req.file as Express.MulterS3.File
         if (!file) throw new Error('Unable upload image, please try again')
 
-        res.status(200).json({
-            video: {
-                url: generateUrl(file.key)
+
+        const videoMetaData = await prisma.videoMetaData.create({
+            data: {
+                url: file.key
             }
+        })
+        res.status(200).json({
+            videoMetaData
         })
     }
     catch (e) {

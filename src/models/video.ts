@@ -3,10 +3,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient().$extends({
     model: {
         video: {
-            add(url: string, productId: number) {
+            add(videoMetaDataId: number, productId: number) {
                 return prisma.video.create({
                     data: {
-                        url, productId
+                        videoMetaDataId, productId
                     }
                 })
             },
@@ -16,7 +16,7 @@ const prisma = new PrismaClient().$extends({
                         id
                     },
                     select: {
-                        id: true, url: true, createdAt: true, thumbnailUrl: true, product: {
+                        id: true, createdAt: true, product: {
                             select: {
                                 id: true, teamPrice: true,
                                 seller: {
@@ -33,6 +33,11 @@ const prisma = new PrismaClient().$extends({
                                     }
                                 }
                             }
+                        },
+                        videoMetaData: {
+                            select: {
+                                url: true, processedUrl: true, thumbnailUrl: true, id: true
+                            }
                         }
                     }
                 })
@@ -46,13 +51,13 @@ const prisma = new PrismaClient().$extends({
                     }
                 })
             },
-            updateThumbnailUrl(videoId: number, thumbnailUrl: string) {
-                return prisma.video.update({
+            updateThumbnailUrl(videoMetaDataId: number, thumbnailUrl: string) {
+                return prisma.videoMetaData.update({
+                    where: {
+                        id: videoMetaDataId
+                    },
                     data: {
                         thumbnailUrl
-                    },
-                    where: {
-                        id: videoId
                     }
                 })
             }

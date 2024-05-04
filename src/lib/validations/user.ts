@@ -1,5 +1,14 @@
 import { z } from 'zod'
 
+const addressParams = z.object({
+    address1: z.string(),
+    address2: z.string(),
+    city: z.string(),
+    state: z.string(),
+    country: z.string(),
+    pincode: z.string()
+})
+
 const userParams = z.object({
     user: z.object({
         username: z.string(),
@@ -12,10 +21,19 @@ const sellerParams = z.object({
         brandName: z.string(),
         bio: z.string(),
         contactNumber: z.string(),
-        storeAddress: z.string(),
         type: z.string(),
         categoryId: z.number(),
-        email: z.string()
+        email: z.string(),
+        deliveryType: z.enum(['noDelivery', 'thirdPartyDelivery', 'ownDelivery']),
+        address: addressParams,
+        deliveryFee: z.number().nullable(),
+        thirdPartyLink: z.string().nullable()
+    })
+})
+
+const updateSellerParams = z.object({
+    seller: z.object({
+        active: z.boolean()
     })
 })
 
@@ -27,7 +45,7 @@ const followParams = z.object({
 
 const editProfileParams = z.object({
     user: z.object({
-        address: z.string()
+        address: addressParams
     })
 })
 
@@ -35,5 +53,6 @@ export {
     userParams,
     sellerParams,
     followParams,
-    editProfileParams
+    editProfileParams,
+    updateSellerParams
 }

@@ -38,42 +38,18 @@ const shopOrders = async (req: Request, res: Response) => {
         const orderStatus = req.query.status as string;
 
         if (orderStatus === 'orderConfirmed' || orderStatus === 'productDelivered') {
-            var orders = await prisma.seller.findMany({
+            const orders = await prisma.order.findMany({
                 where: {
-                    id: parseInt(userId)
-                },
-                select: {
-                    products: {
-                        where: {
-                            orders: {
-                                some: {
-                                    orderStatus
-                                }
-                            }
-                        },
-                        select: {
-                            id: true, name: true, imageLink: true, description: true,
-                            orders: {
-                                where: {
-                                    orderStatus
-                                },
-                                select: {
-                                    id: true, createdAt: true, quantity: true, purchaseType: true, orderStatus: true, totalPrice: true,
-                                    user: {
-                                        select: {
-                                            username: true, phoneNumber: true, address: true
-                                        }
-                                    },
-                                }
-                            }
-                        }
-                    }
+                    Product: {
+                        sellerId: parseInt(userId)
+                    },
+                    orderStatus
                 }
             })
             // const totalOrders = orderProducts.reduce((total, product) => {
             //     return product._count.orders + total
             // }, 0)
-            return res.json({ products: orders.flatMap(order => order.products) })
+            return res.json({ orders })
         }
         throw new Error('Invalid order status')
     }
@@ -104,9 +80,33 @@ const shopLive = async (req: Request, res: Response) => {
     }
 }
 
+const update = async (req: Request, res: Response) => {
+    try {
+        const status = req.query.status as string
+        console.log(status === 'open')
+        const shopStatus = await prisma.seller.update({
+            where: {
+                id: req.userId
+            },
+            data: {
+                shopOpen: (status === 'open')
+            },
+            select: {
+                shopOpen: true
+            }
+        })
+        res.json({ shopStatus })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Error while fetching shop orders' })
+    }
+}
+
 export {
     shopReviews,
     shopDetails,
     shopOrders,
-    shopLive
+    shopLive,
+    update
 }

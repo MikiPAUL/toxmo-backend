@@ -1,18 +1,17 @@
 import { Request, Response } from "express"
-import { bitParams } from "../lib/validations/bit"
+import { bitParams, updateParams } from "../lib/validations/bit"
 import prisma from "../models/video"
 import { deleteFile } from "../services/aws-s3"
 import queue from "../services/bgService"
+import { generateUrl } from "../lib/utils/generateUrl"
 
 interface IBit {
     id: number,
-    url: string | null,
-    thumbnailUrl: string | null
-}
-
-const generateUrl = (url: string | null | undefined) => {
-    if (!url) return null
-    return `${process.env['CDN_URL']}/${url}`
+    videoMetaData: {
+        url: string,
+        processedUrl: string | null,
+        thumbnailUrl: string | null
+    }
 }
 
 const shuffle = (t: IBit[]) => {
@@ -41,16 +40,16 @@ const create = async (req: Request, res: Response) => {
         const bitRequest = bitParams.safeParse(req.body)
         if (!bitRequest.success) throw new Error('invalid params')
 
-        const { url, productId } = bitRequest.data.bit
-        const originalName = url.split('/').pop() || url
-        const bit = await prisma.video.add(originalName, productId)
+        const { videoMetaDataId, productId } = bitRequest.data.bit
+
+        const bit = await prisma.video.add(videoMetaDataId, productId)
         const queueOptions = {
             attempts: 5,
             backoff: 5000
         }
-        await queue.add({ fileLocation: url, videoId: bit.id }, queueOptions)
+        await queue.add({ videoMetaDataId }, queueOptions)
 
-        res.status(200).json({ bit: { ...bit, url } })
+        res.status(200).json({ bit: { ...bit } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -77,7 +76,11 @@ const index = async (req: Request, res: Response) => {
                     }
                 },
                 select: {
-                    id: true, url: true, thumbnailUrl: true
+                    id: true, videoMetaData: {
+                        select: {
+                            processedUrl: true, url: true, thumbnailUrl: true
+                        }
+                    }
                 },
                 orderBy: {
                     createdAt: 'desc'
@@ -94,7 +97,11 @@ const index = async (req: Request, res: Response) => {
                     }
                 },
                 select: {
-                    id: true, url: true, thumbnailUrl: true
+                    id: true, videoMetaData: {
+                        select: {
+                            processedUrl: true, url: true, thumbnailUrl: true
+                        }
+                    }
                 },
                 orderBy: {
                     createdAt: 'desc'
@@ -104,8 +111,11 @@ const index = async (req: Request, res: Response) => {
         shuffle(bits)
         res.status(200).json({
             bits: bits.map(bit => {
+                const { videoMetaData, ...otherDetails } = bit
+                const { processedUrl, url, thumbnailUrl } = videoMetaData
+
                 return {
-                    ...bit, url: generateUrl(bit.url), thumbnailUrl: generateUrl(bit.thumbnailUrl)
+                    ...otherDetails, url: generateUrl(processedUrl || url), thumbnailUrl: generateUrl(thumbnailUrl)
                 }
             })
         })
@@ -126,8 +136,8 @@ const show = async (req: Request, res: Response) => {
         res.status(200).json({
             bit: {
                 id: bit.id,
-                url: generateUrl(bit.url),
-                thumbnailUrl: generateUrl(bit.thumbnailUrl),
+                url: generateUrl(bit.videoMetaData.processedUrl || bit.videoMetaData.url),
+                thumbnailUrl: generateUrl(bit.videoMetaData.thumbnailUrl),
                 createdAt: bit.createdAt,
                 productId: bit.product.id,
                 price: bit.product.teamPrice,
@@ -174,6 +184,29 @@ const toggleLike = async (req: Request, res: Response) => {
     }
 }
 
+const update = async (req: Request, res: Response) => {
+    try {
+        const updateRequest = updateParams.safeParse(req.body)
+        const url = req.query.url as string
+        if (!updateRequest.success) throw new Error('invalid params')
+
+        const { processedUrl } = updateRequest.data.bit
+        const bit = await prisma.videoMetaData.update({
+            where: {
+                url
+            },
+            data: {
+                processedUrl
+            }
+        })
+        res.status(200).json({ bit })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to update bit' })
+    }
+}
+
 const destroy = async (req: Request, res: Response) => {
     try {
         const bitId = parseInt(req.params.id)
@@ -183,13 +216,17 @@ const destroy = async (req: Request, res: Response) => {
                 id: bitId
             },
             select: {
-                id: true, url: true
+                id: true, videoMetaData: {
+                    select: {
+                        url: true, processedUrl: true, thumbnailUrl: true
+                    }
+                }
             }
         })
         if (!bit) throw new Error('Unable to delete the video')
 
-        const destroyResponse = await deleteFile(bit.url)
-        if (destroyResponse.$metadata.httpStatusCode !== 204) throw new Error('Unable to delete the video')
+        const destroyResponse = await deleteFile(bit.videoMetaData.url)
+        if (!destroyResponse?.$metadata || destroyResponse.$metadata.httpStatusCode !== 204) throw new Error('Unable to delete the video')
 
         await prisma.video.delete({
             where: {
@@ -204,11 +241,10 @@ const destroy = async (req: Request, res: Response) => {
     }
 }
 
-
-
 export {
     create,
     index,
+    update,
     show,
     toggleLike,
     destroy

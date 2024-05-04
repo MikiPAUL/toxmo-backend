@@ -20,10 +20,11 @@ declare global {
 
 interface IncomingMessageReq extends IncomingMessage {
     body?: string,
-    userId?: number
+    userId?: number,
 }
 
 interface ILogData {
+    headers?: any
     method: string | undefined,
     url: string | undefined,
     status: string | undefined,
@@ -54,7 +55,7 @@ const morganMiddleware = morgan(
             url: tokens.url(req, res),
             status: tokens.status(req, res),
             contentLength: tokens.res(req, res, 'content-length'),
-            responseTime: tokens['response-time'](req, res),
+            responseTime: tokens['response-time'](req, res)
         }
         const incomingReq: IncomingMessageReq = req
         if (incomingReq.body) {
@@ -62,6 +63,9 @@ const morganMiddleware = morgan(
         }
         if (incomingReq.userId) {
             logData.userId = incomingReq.userId
+        }
+        if (incomingReq.headers) {
+            logData.headers = incomingReq.headers
         }
         return JSON.stringify(logData)
     },

@@ -13,7 +13,6 @@ model User {
   otp         Int?
   otpExpireAt DateTime?
   avatar      Bytes?
-  address     String?
   phoneNumber String         @unique
   randomInt   Int            @default(0)
   gender      Gender?
@@ -26,24 +25,43 @@ model User {
   updatedAt   DateTime       @updatedAt
   Review      Review[]
   VideoLike   VideoLike[]
+  address     Address?
+}
+
+model Address {
+  id       Int     @id @default(autoincrement())
+  userId   Int?    @unique
+  sellerId Int?    @unique
+  address1 String
+  address2 String?
+  city     String
+  state    String?
+  country  String
+  pincode  String
+  user     User?   @relation(fields: [userId], references: [id])
+  seller   Seller? @relation(fields: [sellerId], references: [id])
 }
 
 model Seller {
-  id            Int          @id
-  brandName     String
-  active        Boolean      @default(false)
-  bio           String
-  contactNumber String
-  email         String
-  storeAddress  String
-  type          String
-  categoryId    Int
-  products      Product[]
-  category      Category     @relation(fields: [categoryId], references: [id])
-  user          User         @relation(fields: [id], references: [id])
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  LiveStream    LiveStream[]
+  id             Int          @id
+  active         Boolean      @default(false)
+  brandName      String
+  bio            String
+  contactNumber  String
+  email          String
+  type           String
+  categoryId     Int
+  deliveryType   DeliveryType
+  deliveryFee    Int?
+  thirdPartyLink String?
+  shopOpen       Boolean      @default(false)
+  products       Product[]
+  category       Category     @relation(fields: [categoryId], references: [id])
+  user           User         @relation(fields: [id], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  LiveStream     LiveStream[]
+  address        Address?
 }
 
 model Relationship {
@@ -129,7 +147,7 @@ model TeamMember {
 model Order {
   id           Int          @id @default(autoincrement())
   userId       Int
-  productId    Int?
+  productId    Int
   quantity     Int          @default(1)
   totalPrice   Float
   teamId       Int?
@@ -137,7 +155,7 @@ model Order {
   orderStatus  OrderStatus  @default(orderPlaced)
   team         Team?        @relation(fields: [teamId], references: [id])
   user         User         @relation(fields: [userId], references: [id])
-  Product      Product?     @relation(fields: [productId], references: [id])
+  Product      Product      @relation(fields: [productId], references: [id])
   review       Review?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -156,16 +174,26 @@ model LiveStream {
 }
 
 model Video {
-  id           Int         @id @default(autoincrement())
-  url          String
-  thumbnailUrl String?
-  productId    Int
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  product      Product     @relation(fields: [productId], references: [id])
-  VideoLike    VideoLike[]
+  id              Int           @id @default(autoincrement())
+  productId       Int
+  videoMetaDataId Int           @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  videoMetaData   VideoMetaData @relation(fields: [videoMetaDataId], references: [id])
+  product         Product       @relation(fields: [productId], references: [id])
+  VideoLike       VideoLike[]
 
   @@index([productId])
+}
+
+model VideoMetaData {
+  id           Int      @id @default(autoincrement())
+  url          String   @unique
+  processedUrl String?
+  thumbnailUrl String?
+  video        Video?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model VideoLike {
@@ -212,4 +240,10 @@ enum OrderStatus {
   productShipped
   productDelivered
   orderExpired
+}
+
+enum DeliveryType {
+  noDelivery
+  thirdPartyDelivery
+  ownDelivery
 }

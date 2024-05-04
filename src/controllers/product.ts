@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import prisma from "../models/product";
 import relationshipPrisma from "../models/relationship";
-import * as sellerPrisma from "../models/seller";
+import sellerPrisma from "../models/seller";
 import { productParams, productUpdateParams } from "../lib/validations/product"
 import { IProductDetails } from "product";
 
@@ -99,9 +99,9 @@ const create = async (req: Request, res: Response) => {
             return res.status(422).json({ error: "Unable to create product" })
         }
 
-        const seller = await sellerPrisma.default.seller.sellerInfo(req.userId);
+        const seller = await sellerPrisma.seller.sellerInfo(req.userId);
 
-        if (!seller) throw new Error('Invalid Seller')
+        if (!seller || !seller.active || !seller.shopOpen) throw new Error('Invalid Seller')
 
         const productDetails = createParams.data.product;
 

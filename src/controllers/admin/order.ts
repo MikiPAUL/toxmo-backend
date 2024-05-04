@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
 import prisma from '../../models/order'
-import type { Order } from '@prisma/client'
 import { OrderStatus } from "@prisma/client";
 
 const index = async (req: Request, res: Response) => {

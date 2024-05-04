@@ -67,7 +67,6 @@ const prisma = new PrismaClient().$extends({
         username?: string,
         phoneNumber?: string,
         avatar?: Buffer,
-        address?: string,
         gender?: Gender
       }) {
         const { id, ...attr } = params

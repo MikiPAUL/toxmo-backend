@@ -31,6 +31,7 @@ router.get('/api/seller/:id/details', authUser, seller.shopDetails)
 router.get('/api/seller/:id/orders', authUser, seller.shopOrders)
 router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
 router.get('/api/seller/:id/live', authUser, seller.shopLive)
+router.patch('/api/seller/:id', authUser, seller.update)
 router.get('/api/me', authUser, profile)
 
 router.post('/api/user/follow', authUser, relationships.followUser)
@@ -70,6 +71,7 @@ router.get('/api/bits', authUser, bit.index)
 router.get('/api/bits/:id', authUser, bit.show)
 router.delete('/api/bits/:id', authUser, bit.destroy)
 router.patch('/api/bits/:id/toggleLike', authUser, bit.toggleLike)
+router.put('/api/bits', bit.update)
 router.post('/api/uploadImage/:id', authUser, uploadImageService.single('image'), upload.uploadImage)
 
 //admin
@@ -78,7 +80,11 @@ router.post('/admin/api/auth/login', admin.auth.signIn)
 router.get('/admin/api/orders', authAdmin, admin.orders.index)
 router.patch('/admin/api/orders/:id', authAdmin, admin.orders.update)
 
+router.get('/admin/api/sellers', authAdmin, admin.seller.index)
+router.put('/admin/api/sellers/:id', authAdmin, admin.seller.update)
+
 //webapp
 router.post('/api/waitList', waitList.create)
+router.get('/admin/api/waitList', authAdmin, waitList.index)
 
 export default router

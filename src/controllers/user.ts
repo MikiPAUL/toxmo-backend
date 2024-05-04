@@ -1,9 +1,18 @@
 import { Request, Response } from 'express';
-import { userParams, sellerParams, editProfileParams } from '../lib/validations/user';
-import prisma from '../models/user';
-import type { User } from '@prisma/client'
-import sendOtp from '../services/verifyOTP';
-import {logger} from '../server'
+import { userParams, sellerParams, editProfileParams } from '../lib/validations/user'
+import prisma from '../models/user'
+import { IUser } from '../lib/types/user'
+import sendOtp from '../services/verifyOTP'
+import { DeliveryType } from '@prisma/client'
+
+const validateDeliveryOptions = (deliveryType: DeliveryType, deliveryFee: number | null, thirdPartyDelivery: string | null) => {
+    const validOptions = {
+        [DeliveryType.noDelivery]: !deliveryFee && !thirdPartyDelivery,
+        [DeliveryType.ownDelivery]: deliveryFee && !thirdPartyDelivery,
+        [DeliveryType.thirdPartyDelivery]: !deliveryFee && thirdPartyDelivery
+    }
+    if (!validOptions[deliveryType]) throw new Error('Invalid delivery options')
+}
 
 const createUser = async (req: Request, res: Response) => {
     try {
@@ -58,11 +67,20 @@ const applyToSell = async (req: Request, res: Response) => {
         const sellerRequest = sellerParams.safeParse(req.body);
         if (!sellerRequest.success) return res.status(422).json({ error: 'Invalid request params' })
 
+        const { address, ...shopDetails } = sellerRequest.data.seller
+        validateDeliveryOptions(shopDetails.deliveryType, shopDetails.deliveryFee, shopDetails.thirdPartyLink)
         const seller = await prisma.seller.create({
             data: {
                 id: req.userId,
-                ...sellerRequest.data.seller,
-                active: true
+                ...shopDetails,
+                address: {
+                    create: {
+                        ...address
+                    }
+                }
+            },
+            include: {
+                address: true
             }
         })
         res.status(201).json({ seller })
@@ -83,7 +101,14 @@ const editProfile = async (req: Request, res: Response) => {
                 id: req.userId
             },
             data: {
-                address: editProfileRequest.data.user.address
+                address: {
+                    create: {
+                        ...editProfileRequest.data.user.address
+                    }
+                }
+            },
+            include: {
+                address: true
             }
         })
 
@@ -106,9 +131,12 @@ const profile = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({
             where: {
                 id: req.userId
+            },
+            include: {
+                address: true
             }
         })
-        logger.info(user)
+        // logger.info(user)
         if (!user) return;
         res.json({
             user: { ...serializeUser(user), seller }
@@ -120,17 +148,18 @@ const profile = async (req: Request, res: Response) => {
     }
 }
 
-function serializeUser(user: User) {
+function serializeUser(user: IUser) {
     return {
         "id": user.id,
         "username": user.username,
         "avatar": user.avatar,
-        "address": user.address,
+        "address": {
+            ...user.address
+        },
         "phoneNumber": user.phoneNumber,
         "gender": user.gender,
     }
 }
-
 
 export {
     createUser,

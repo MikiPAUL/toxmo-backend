@@ -28,15 +28,22 @@ const create = async (req: Request, res: Response) => {
         }
         const orderDetails = orderRequest.data.order;
         const { orderId } = await prisma.$transaction(async (prisma) => {
-            const productStockQuantity = await prisma.product.findUnique({
+            const productStockQuantity = await prisma.product.findUniqueOrThrow({
                 where: {
                     id: orderDetails.productId
                 },
                 select: {
-                    stockQuantity: true
+                    stockQuantity: true,
+                    seller: {
+                        select: {
+                            shopOpen: true
+                        }
+                    }
                 }
             })
+            if (!productStockQuantity.seller.shopOpen) throw new Error('Shop is closed currently')
             if (!productStockQuantity || productStockQuantity.stockQuantity < orderDetails.quantity) throw new Error('Out of stock')
+                
             const order = await prisma.order.add(user.id, orderDetails)
             await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
             const teamCount = await prisma.teamMember.count({
@@ -157,9 +164,34 @@ const index = async (req: Request, res: Response) => {
 }
 
 const update = async (req: Request, res: Response) => {
-    const user = await currentUser(req)
-    if (!user) return res.status(422).json({ error: "Unable to find the user" })
+    try {
+        const orderId = req.params.id as string
+        const orderStatus = req.query.orderStatus as string
 
+        const orderDetail = await prisma.order.findUnique({
+            where: {
+                id: parseInt(orderId)
+            },
+            select: {
+                orderStatus: true, Product: {
+                    select: {
+                        sellerId: true
+                    }
+                }
+            }
+        })
+        if (orderDetail?.Product?.sellerId !== req.userId || orderDetail.orderStatus !== OrderStatus.orderConfirmed
+            || orderStatus !== OrderStatus.productDelivered) {
+            throw new Error('Invalid order status')
+        }
+
+        const order = await prisma.order.updateOrderStatus({ orderId: parseInt(orderId), status: orderStatus })
+        res.status(200).json({ order })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to update order' })
+    }
 }
 
 // const show = async (req: Request, res: Response) => {

@@ -10,6 +10,35 @@ const prisma = new PrismaClient().$extends({
                 totalPrice: number,
                 teamId?: number
             }) {
+                const userPinCode = await prisma.user.findUnique({
+                    where: {
+                        id: userId
+                    },
+                    select: {
+                        address: {
+                            select: {
+                                pincode: true
+                            }
+                        }
+                    }
+                })
+                const sellerPinCode = await prisma.product.findUnique({
+                    where: {
+                        id: orderDetails.productId
+                    },
+                    select: {
+                        seller: {
+                            select: {
+                                address: {
+                                    select: {
+                                        pincode: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                })
+                if (!sellerPinCode?.seller.address || (sellerPinCode?.seller.address?.pincode !== userPinCode?.address?.pincode)) throw new Error('Pincode not same!!')
                 return await prisma.order.create({
                     data: {
                         userId,
@@ -49,7 +78,7 @@ const prisma = new PrismaClient().$extends({
                         }
                     },
                     orderBy: {
-                        id: 'desc'
+                        createdAt: 'desc'
                     }
                 })
             },

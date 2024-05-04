@@ -1,7 +1,7 @@
 import multer from 'multer'
 import multerS3 from 'multer-s3'
 import { Upload } from '@aws-sdk/lib-storage'
-import { S3Client, DeleteObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3'
+import { S3Client, DeleteObjectCommand, ObjectCannedACL, HeadObjectCommand, PutObjectCommandInput } from '@aws-sdk/client-s3'
 import path from 'node:path'
 import fs from 'fs'
 
@@ -17,8 +17,8 @@ const s3Storage = multerS3({
     s3: s3,
     acl: 'public-read',
     bucket: process.env['S3_BUCKET_NAME'] || "",
-    metadata: (_, file, cb) => {
-        cb(null, { fieldname: file.fieldname })
+    metadata: (req, file, cb) => {
+        cb(null, { fieldname: file.fieldname, userId: req.userId.toString() })
     },
     key: (_, file, cb) => {
         const fileName = Date.now() + "_" + file.fieldname + "_" + file.originalname
@@ -58,7 +58,7 @@ const uploadImage = multer({
 
 export const uploadFile = async (fileName: string) => {
     const fileContent = fs.readFileSync(fileName)
-    const uploadParams = {
+    const uploadParams: PutObjectCommandInput = {
         Bucket: process.env.S3_BUCKET_NAME,
         Key: fileName,
         Body: fileContent,
