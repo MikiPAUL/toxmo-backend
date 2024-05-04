@@ -45,6 +45,22 @@ const shopOrders = async (req: Request, res: Response) => {
                     },
                     orderStatus
                 },
+                include: {
+                    Product: {
+                        select: {
+                            id: true, imageLink: true, name: true, description: true
+                        }
+                    },
+                    user: {
+                        select: {
+                            username: true, phoneNumber: true, address: {
+                                select: {
+                                    address1: true, address2: true, city: true, country: true, pincode: true, state: true
+                                }
+                            }
+                        }
+                    }
+                },
                 orderBy: {
                     createdAt: 'desc'
                 }

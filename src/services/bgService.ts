@@ -22,44 +22,53 @@ queue.process(async (job) => {
     const originalName = videoUrl.url, fileLocation = generateUrl(originalName)
     if (!fileLocation) throw new Error('Invalid file location')
 
-    return new Promise(async (resolve, reject) => {
-        //Generate thumbnail using ffmpeg
-        ffmpeg(fileLocation)
-            .screenshots({
-                count: 1,
-                folder: 'thumbnails',
-                filename: `${originalName}.png`,
-            })
-            .on('progress', (progress) => {
-                if (progress.percent) {
-                    logger.info(`Processing: ${Math.floor(progress.percent)}% done`)
-                }
-            })
-            // The callback that is run when FFmpeg is finished
-            .on('end', async () => {
-                logger.info(`FFmpeg has finished`)
+    //Generate thumbnail using ffmpeg
+    ffmpeg(fileLocation)
+        .screenshots({
+            count: 1,
+            folder: 'thumbnails',
+            filename: `${originalName}.png`,
+        })
+        .on('progress', (progress) => {
+            if (progress.percent) {
+                logger.info(`Processing: ${Math.floor(progress.percent)}% done`)
+            }
+        })
+        // The callback that is run when FFmpeg is finished
+        .on('end', async () => {
+            logger.info(`FFmpeg has finished`)
 
-                const response = await uploadFile(`thumbnails/${originalName}.png`)
-                logger.info(`Thumbnail stored in successfully ${response.Location}`)
+            const response = await uploadFile(`processed/thumbnails/${originalName}.png`)
+            logger.info(`Thumbnail stored in successfully ${response.Location}`)
 
-                if (!response.Key) {
-                    logger.error(`Unable to upload thumbnail for the video ${fileLocation}`)
-                    return
-                }
-                const bit = await prisma.video.updateThumbnailUrl(videoMetaDataId, response.Key)
-                if (!bit.thumbnailUrl) logger.error('Error updating thumbnail url')
-                logger.info('Thumbnail url updated successfully')
+            if (!response.Key) {
+                logger.error(`Unable to upload thumbnail for the video ${fileLocation}`)
+                return
+            }
+            const bit = await prisma.video.updateThumbnailUrl(videoMetaDataId, response.Key)
+            if (!bit.thumbnailUrl) logger.error('Error updating thumbnail url')
+            logger.info('Thumbnail url updated successfully')
 
-                fs.unlink(`thumbnails/${originalName}.png`, (err) => {
-                    if (err) logger.error(err)
-                    logger.info(`thumbnail/${originalName} was deleted`)
-                })
+            fs.unlink(`thumbnails/${originalName}.png`, (err) => {
+                if (err) logger.error(err)
+                logger.info(`thumbnail/${originalName} was deleted`)
             })
-            // The callback that is run when FFmpeg encountered an error
-            .on('error', (error) => {
-                logger.error(error)
-            })
-    })
+        })
+        // The callback that is run when FFmpeg encountered an error
+        .on('error', (error) => {
+            logger.error(error)
+        })
+
+    return Promise.resolve()
 })
 
+// Event listener for completed jobs
+queue.on('completed', (job, result) => {
+    console.log(`Job ID ${job.id} completed with result:`, result);
+});
+
+// Event listener for failed jobs
+queue.on('failed', (job, err) => {
+    console.error(`Job ID ${job.id} failed with error:`, err);
+});
 export default queue

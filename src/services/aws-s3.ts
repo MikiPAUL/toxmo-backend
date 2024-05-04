@@ -59,7 +59,7 @@ const uploadImage = multer({
 export const uploadFile = async (fileName: string) => {
     const fileContent = fs.readFileSync(fileName)
     const uploadParams: PutObjectCommandInput = {
-        Bucket: process.env.S3_BUCKET_NAME,
+        Bucket: process.env.S3_PROCESSED_BUCKET_NAME,
         Key: fileName,
         Body: fileContent,
         ACL: ObjectCannedACL.public_read
