@@ -44,6 +44,9 @@ const shopOrders = async (req: Request, res: Response) => {
                         sellerId: parseInt(userId)
                     },
                     orderStatus
+                },
+                orderBy: {
+                    createdAt: 'desc'
                 }
             })
             // const totalOrders = orderProducts.reduce((total, product) => {
