@@ -53,6 +53,7 @@ model Seller {
   categoryId     Int
   deliveryType   DeliveryType
   deliveryFee    Int?
+  deliveryRadius Int?
   thirdPartyLink String?
   shopOpen       Boolean      @default(false)
   products       Product[]

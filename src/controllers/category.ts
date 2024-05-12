@@ -1,4 +1,4 @@
-import { Request, Response, response } from "express"
+import { Request, Response } from "express"
 import { prisma } from "../models/category"
 import { categoryParams } from "../lib/validations/category"
 

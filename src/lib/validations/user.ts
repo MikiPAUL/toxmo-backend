@@ -27,7 +27,8 @@ const sellerParams = z.object({
         deliveryType: z.enum(['noDelivery', 'thirdPartyDelivery', 'ownDelivery']),
         address: addressParams,
         deliveryFee: z.number().nullable(),
-        thirdPartyLink: z.string().nullable()
+        thirdPartyLink: z.string().nullable(),
+        deliveryRadius: z.number().nullable()
     })
 })
 

@@ -76,6 +76,16 @@ const prisma = new PrismaClient().$extends({
           },
           data: attr
         })
+      },
+      async getAddress(userId: number){
+        return prisma.user.findUnique({
+          where: {
+            id: userId
+          },
+          select: {
+            address: true
+          }
+        })
       }
     },
   },

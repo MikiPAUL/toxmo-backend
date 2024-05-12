@@ -17,6 +17,7 @@ declare global {
       S3_BUCKET_NAME: string;
       PORT: number;
       REDIS_URL: string;
+      GOOGLE_MAPS_API_KEY: string;
     }
   }
 }

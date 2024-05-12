@@ -38,7 +38,7 @@ queue.process(async (job) => {
         .on('end', async () => {
             logger.info(`FFmpeg has finished`)
 
-            const response = await uploadFile(`processed/thumbnails/${originalName}.png`)
+            const response = await uploadFile(`thumbnails/${originalName}.png`)
             logger.info(`Thumbnail stored in successfully ${response.Location}`)
 
             if (!response.Key) {

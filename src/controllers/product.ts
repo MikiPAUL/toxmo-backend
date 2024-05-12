@@ -2,8 +2,10 @@ import { Request, Response } from "express"
 import prisma from "../models/product";
 import relationshipPrisma from "../models/relationship";
 import sellerPrisma from "../models/seller";
+import userPrisma from "../models/user";
 import { productParams, productUpdateParams } from "../lib/validations/product"
 import { IProductDetails } from "product";
+import { checkWithinDeliveryDistance } from "../services/gmaps";
 
 const index = async (req: Request, res: Response) => {
     try {
@@ -12,7 +14,8 @@ const index = async (req: Request, res: Response) => {
         if (categoryId) {
             var sellerProducts = await prisma.seller.findMany({
                 where: {
-                    categoryId: parseInt(categoryId)
+                    categoryId: parseInt(categoryId),
+                    shopOpen: true
                 },
                 select: {
                     products: {
@@ -46,6 +49,9 @@ const index = async (req: Request, res: Response) => {
                 where: {
                     stockQuantity: {
                         gt: 0
+                    },
+                    seller: {
+                        shopOpen: true
                     }
                 },
                 select: {
@@ -83,8 +89,16 @@ const show = async (req: Request, res: Response) => {
 
         if (!product) return res.status(404).json({ error: 'Product not found ' })
 
+        const userAddress = (await userPrisma.user.getAddress(req.userId))?.address,
+            sellerAddress = (await sellerPrisma.seller.getAddress(product.sellerId))?.address
+
+        let withinDeliverDist: boolean | null = null
+        if (userAddress && sellerAddress && product.seller.deliveryRadius) {
+            withinDeliverDist = await checkWithinDeliveryDistance(product.seller.deliveryRadius, userAddress, sellerAddress)
+        }
+
         const isFollowing = await relationshipPrisma.relationship.alreadyFollowing(req.userId, product.sellerId)
-        res.json({ product: { ...product, seller: { ...product.seller, isFollowing } } })
+        res.json({ product: { ...product, seller: { ...product.seller, isFollowing }, withinDeliverDist } })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

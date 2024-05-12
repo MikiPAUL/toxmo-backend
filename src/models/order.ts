@@ -1,4 +1,5 @@
 import { PrismaClient, PurchaseType, OrderStatus } from "@prisma/client";
+import { checkWithinDeliveryDistance } from "../services/gmaps";
 
 const prisma = new PrismaClient().$extends({
     model: {
@@ -10,35 +11,31 @@ const prisma = new PrismaClient().$extends({
                 totalPrice: number,
                 teamId?: number
             }) {
-                const userPinCode = await prisma.user.findUnique({
+                const userAddress = (await prisma.user.findUnique({
                     where: {
                         id: userId
                     },
                     select: {
-                        address: {
-                            select: {
-                                pincode: true
-                            }
-                        }
+                        address: true
                     }
-                })
-                const sellerPinCode = await prisma.product.findUnique({
+                }))?.address
+                const sellerAddress = (await prisma.product.findUnique({
                     where: {
                         id: orderDetails.productId
                     },
                     select: {
                         seller: {
                             select: {
-                                address: {
-                                    select: {
-                                        pincode: true
-                                    }
-                                }
+                                address: true
                             }
                         }
                     }
-                })
-                if (!sellerPinCode?.seller.address || (sellerPinCode?.seller.address?.pincode !== userPinCode?.address?.pincode)) throw new Error('Pincode not same!!')
+                }))?.seller.address
+
+                if (!userAddress || !sellerAddress) throw new Error('Invalid Address to place order')
+                const withinDeliveryDistance = await checkWithinDeliveryDistance(15, userAddress, sellerAddress)
+
+                if (!withinDeliveryDistance) throw new Error('Out of delivery distance')
                 return await prisma.order.create({
                     data: {
                         userId,

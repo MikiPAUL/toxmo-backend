@@ -5,10 +5,15 @@ import { IUser } from '../lib/types/user'
 import sendOtp from '../services/verifyOTP'
 import { DeliveryType } from '@prisma/client'
 
-const validateDeliveryOptions = (deliveryType: DeliveryType, deliveryFee: number | null, thirdPartyDelivery: string | null) => {
+const validateDeliveryOptions = (
+    deliveryType: DeliveryType,
+    deliveryFee: number | null,
+    thirdPartyDelivery: string | null,
+    deliveryRadius: number | null
+) => {
     const validOptions = {
         [DeliveryType.noDelivery]: !deliveryFee && !thirdPartyDelivery,
-        [DeliveryType.ownDelivery]: deliveryFee && !thirdPartyDelivery,
+        [DeliveryType.ownDelivery]: deliveryFee && !thirdPartyDelivery && deliveryRadius,
         [DeliveryType.thirdPartyDelivery]: !deliveryFee && thirdPartyDelivery
     }
     if (!validOptions[deliveryType]) throw new Error('Invalid delivery options')
@@ -68,7 +73,7 @@ const applyToSell = async (req: Request, res: Response) => {
         if (!sellerRequest.success) return res.status(422).json({ error: 'Invalid request params' })
 
         const { address, ...shopDetails } = sellerRequest.data.seller
-        validateDeliveryOptions(shopDetails.deliveryType, shopDetails.deliveryFee, shopDetails.thirdPartyLink)
+        validateDeliveryOptions(shopDetails.deliveryType, shopDetails.deliveryFee, shopDetails.thirdPartyLink, shopDetails.deliveryRadius)
         const seller = await prisma.seller.create({
             data: {
                 id: req.userId,
