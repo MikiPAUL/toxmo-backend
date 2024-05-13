@@ -27,11 +27,16 @@ const createTeam = async (req: Request, res: Response) => {
                 id: productId
             },
             select: {
-                stockQuantity: true
+                stockQuantity: true,
+                seller: {
+                    select: {
+                        shopOpen: true
+                    }
+                }
             }
         })
         if (!productStockQuantity || productStockQuantity.stockQuantity < quantity) throw new Error('Out of stock')
-
+        if (!productStockQuantity.seller.shopOpen) throw new Error('Shop is closed currently')
         const { newTeam, newTeamMember, orderId } = await prisma.$transaction(async (prisma) => {
             const newTeam = await prisma.team.createTeam(productId);
             const newTeamMember = await teamMemberPrisma.teamMember.addTeamMember(newTeam.id, req.userId);
