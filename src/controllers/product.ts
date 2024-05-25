@@ -73,7 +73,7 @@ const index = async (req: Request, res: Response) => {
         res.json({
             products: products.map(product => {
                 return { ...product }
-            })
+            }).sort(() => (0.5 - Math.random()))
         })
     }
     catch (e) {
@@ -104,7 +104,7 @@ const show = async (req: Request, res: Response) => {
         if (e instanceof Error) res.status(422).json({ error: e.message })
         else res.status(422).json({ error: 'unable to fetch product details' })
     }
-}
+} 
 
 const create = async (req: Request, res: Response) => {
     try {

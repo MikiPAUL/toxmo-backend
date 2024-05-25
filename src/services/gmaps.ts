@@ -6,7 +6,7 @@ const client = new Client({})
 const constructAddress = (address: Address) => {
     const { address1, address2, city, state, country, pincode } = address
 
-    return (`${address1}, ${city}, ${state}, ${country}, ${pincode}`)
+    return (`${address2}, ${city}, ${state}, ${country}, ${pincode}`)
 }
 
 const checkWithinDeliveryDistance = async (deliveryRadius: number, destination: Address, origin: Address) => {

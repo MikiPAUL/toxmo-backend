@@ -4,10 +4,13 @@ import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
 import { weeklyReportScheduler } from './lib/jobs/updateTeamStatus'
 import winston from 'winston'
-import morgan from 'morgan'
-import { IncomingMessage } from 'http'
+// import morgan from 'morgan'
+import morganBody from 'morgan-body'
 import 'winston-daily-rotate-file'
 import cors from 'cors'
+// import path from 'node:path'
+// import fs from 'fs'
+
 dotenv.config({ path: __dirname + '/../.env', debug: true })
 
 declare global {
@@ -18,21 +21,17 @@ declare global {
     }
 }
 
-interface IncomingMessageReq extends IncomingMessage {
-    body?: string,
-    userId?: number,
-}
-
-interface ILogData {
-    headers?: any
-    method: string | undefined,
-    url: string | undefined,
-    status: string | undefined,
-    contentLength: string | undefined,
-    responseTime: string | undefined,
-    requestBody?: string,
-    userId?: number
-}
+// interface ILogData {
+//     headers?: any
+//     method: string | undefined,
+//     url: string | undefined,
+//     status: string | undefined,
+//     contentLength: string | undefined,
+//     responseTime: string | undefined,
+//     requestBody?: string,
+//     userId?: number,
+//     responseBody?: any
+// }
 
 const app = express()
 
@@ -48,46 +47,60 @@ app.use(cors(corsOptions))
 
 app.use(bodyParser.json())
 
-const morganMiddleware = morgan(
-    (tokens, req, res) => {
-        const logData: ILogData = {
-            method: tokens.method(req, res),
-            url: tokens.url(req, res),
-            status: tokens.status(req, res),
-            contentLength: tokens.res(req, res, 'content-length'),
-            responseTime: tokens['response-time'](req, res)
-        }
-        const incomingReq: IncomingMessageReq = req
-        if (incomingReq.body) {
-            logData.requestBody = incomingReq.body
-        }
-        if (incomingReq.userId) {
-            logData.userId = incomingReq.userId
-        }
-        if (incomingReq.headers) {
-            logData.headers = incomingReq.headers
-        }
-        return JSON.stringify(logData)
-    },
-    {
-        stream: {
-            write: (message) => {
-                const data = JSON.parse(message);
-                logger.http(`incoming-request`, data);
-            },
-        },
-    }
-)
+// const morganMiddleware = morgan(
+//     (tokens, req: Request, res: Response) => {
+//         let originalJson = res.json
+//         let originalSend = res.send
+//         const logData: ILogData = {
+//             method: tokens.method(req, res),
+//             url: tokens.url(req, res),
+//             status: tokens.status(req, res),
+//             contentLength: tokens.res(req, res, 'content-length'),
+//             responseTime: tokens['response-time'](req, res)
+//         }
+//         if (req.body) {
+//             logData.requestBody = req.body
+//         }
+//         if (req.userId) {
+//             logData.userId = req.userId
+//         }
+//         if (req.headers) {
+//             logData.headers = req.headers
+//         }
 
-app.use(morganMiddleware)
+//         res.json = function (body) {
+//             console.log('here')
+//             logData.responseBody = body
+//             return originalJson.call(this, body)
+//         }
 
-const { combine, timestamp, json } = winston.format
+//         res.send = function (body) {
+//             console.log('here')
+//             logData.responseBody = body
+//             return originalSend.call(this, body)
+//         }
+
+//         return JSON.stringify(logData)
+//     },
+//     {
+//         stream: {
+//             write: (message) => {
+//                 const data = JSON.parse(message);
+//                 logger.http(`incoming-request`, data);
+//             },
+//         },
+//     }
+// )
+
+// app.use(morganMiddleware)
+
+const { combine, timestamp, simple } = winston.format
 
 export const logger = winston.createLogger({
     level: 'info',
     format: combine(timestamp({
         format: 'YYYY-MM-DD hh:mm:ss.SSS A',
-    }), json()),
+    }), simple()),
     transports: [
         new winston.transports.DailyRotateFile({
             filename: 'logs/info-%DATE%.log',
@@ -112,6 +125,15 @@ export const logger = winston.createLogger({
         })
     ]
 })
+
+const loggerStream = {
+    write: (message: string) => {
+        logger.http(message)
+        return true
+    }
+}
+
+morganBody(app, { stream: loggerStream, noColors: true, logRequestBody: true, logAllReqHeader: true, immediateReqLog: true })
 
 app.use(router)
 

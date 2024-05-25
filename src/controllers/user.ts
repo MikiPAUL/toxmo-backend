@@ -107,8 +107,9 @@ const editProfile = async (req: Request, res: Response) => {
             },
             data: {
                 address: {
-                    create: {
-                        ...editProfileRequest.data.user.address
+                    upsert: {
+                        create: { ...editProfileRequest.data.user.address },
+                        update: { ...editProfileRequest.data.user.address }
                     }
                 }
             },

@@ -1,7 +1,7 @@
 import multer from 'multer'
 import multerS3 from 'multer-s3'
 import { Upload } from '@aws-sdk/lib-storage'
-import { S3Client, DeleteObjectCommand, ObjectCannedACL, HeadObjectCommand, PutObjectCommandInput } from '@aws-sdk/client-s3'
+import { S3Client, DeleteObjectCommand, ObjectCannedACL, PutObjectCommandInput } from '@aws-sdk/client-s3'
 import path from 'node:path'
 import fs from 'fs'
 
