@@ -11,6 +11,7 @@ import * as admin from '../controllers/admin/index'
 import * as upload from '../controllers/upload'
 import * as bit from '../controllers/bit'
 import * as waitList from '../controllers/webapp/waitList'
+import * as assetLink from '../controllers/webapp/assetLink'
 import { authUser, authAdmin } from '../middlewares/auth.middleware'
 import uploadImageService from '../services/aws-s3'
 // import * as teamMember from '../controllers/teamMember'
@@ -86,5 +87,7 @@ router.put('/admin/api/sellers/:id', authAdmin, admin.seller.update)
 //webapp
 router.post('/api/waitList', waitList.create)
 router.get('/admin/api/waitList', authAdmin, waitList.index)
+
+router.get('/.well-known/assetlinks.json', assetLink.index)
 
 export default router

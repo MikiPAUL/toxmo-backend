@@ -1,0 +1,22 @@
+import { Request, Response } from "express"
+
+const index = async (req: Request, res: Response) => {
+    res.status(200).json(
+        [
+            {
+                "relation": [
+                    "delegate_permission/common.handle_all_urls"
+                ],
+                "target": {
+                    "namespace": "android_app",
+                    "package_name": "com.toxmo",
+                    "sha256_cert_fingerprints": [
+                        "D4:92:9B:9D:09:79:85:40:9E:F9:42:4F:62:B1:C0:B7:E6:B3:03:AD:FB:56:31:20:AF:D7:4F:D2:CD:2C:53:1E"
+                    ]
+                }
+            }
+        ]
+    )
+}
+
+export { index }
