@@ -18,6 +18,7 @@ declare global {
       PORT: number;
       REDIS_URL: string;
       GOOGLE_MAPS_API_KEY: string;
+      TWILIO_PHONE_NO: string
     }
   }
 }

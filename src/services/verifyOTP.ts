@@ -13,7 +13,7 @@ const sendOtp = async (phoneNumber: string): Promise<string | null> => {
     const response = await client.messages
         .create({
             body: 'Your toxmo otp for login is ' + otp,
-            from: '+16026414167',
+            from: process.env['TWILIO_PHONE_NO'],
             to: '+91' + phoneNumber
         });
     return response.errorCode == null ? otp : null
