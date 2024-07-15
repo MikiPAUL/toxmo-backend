@@ -98,7 +98,7 @@ model Product {
   teams         Team[]
   orders        Order[]
   reviews       Review[]
-  seller        Seller   @relation(fields: [sellerId], references: [id])
+  seller        Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   Video         Video[]
@@ -156,7 +156,7 @@ model Order {
   orderStatus  OrderStatus  @default(orderPlaced)
   team         Team?        @relation(fields: [teamId], references: [id])
   user         User         @relation(fields: [userId], references: [id])
-  Product      Product      @relation(fields: [productId], references: [id])
+  Product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   review       Review?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -180,8 +180,8 @@ model Video {
   videoMetaDataId Int           @unique
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  videoMetaData   VideoMetaData @relation(fields: [videoMetaDataId], references: [id])
-  product         Product       @relation(fields: [productId], references: [id])
+  videoMetaData   VideoMetaData @relation(fields: [videoMetaDataId], references: [id], onDelete: Cascade)
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   VideoLike       VideoLike[]
 
   @@index([productId])
