@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import { userParams, sellerParams, editProfileParams } from '../lib/validations/user'
 import prisma from '../models/user'
 import { IUser } from '../lib/types/user'
-import sendOtp from '../services/verifyOTP'
+// import sendOtp from '../services/verifyOTP'
 import { DeliveryType } from '@prisma/client'
+import { generateToken } from '../lib/utils/authToken';
 
 const validateDeliveryOptions = (
     deliveryType: DeliveryType,
@@ -50,14 +51,15 @@ const createUser = async (req: Request, res: Response) => {
 
         const user = await prisma.user.add(userDetails.username, userDetails.phoneNumber)
 
-        const otp_response = await sendOtp(request.data.user.phoneNumber)
-        if (!otp_response) throw new Error('Unable to send OTP')
+        // const otp_response = await sendOtp(request.data.user.phoneNumber)
+        // if (!otp_response) throw new Error('Unable to send OTP')
 
-        await prisma.user.storeOTP(user.id, otp_response)
+        // await prisma.user.storeOTP(user.id, otp_response)
+        const token = generateToken(user.id, user.randomInt)
         res.status(200).json(
             {
                 success: true,
-                message: 'OTP sent successfully'
+                token
             }
         )
     }

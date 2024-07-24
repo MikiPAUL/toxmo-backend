@@ -1,4 +1,5 @@
 .env
+.staging.env
 node_modules
 dist
 logs/

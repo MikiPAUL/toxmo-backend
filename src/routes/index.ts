@@ -1,27 +1,28 @@
 import { Router } from 'express'
-import { signIn, signOut, verifyOTP } from '../controllers/authentication'
+import { signIn, signOut, verifyOTP, userExist } from '../controllers/authentication'
 import *  as products from '../controllers/product'
 import { applyToSell, createUser, profile, editProfile } from '../controllers/user'
 import * as seller from '../controllers/seller'
 import * as categories from '../controllers/category'
 import * as orders from '../controllers/order'
 import * as relationships from '../controllers/relationship'
-import * as team from '../controllers/team'
+// import * as team from '../controllers/team'
 import * as admin from '../controllers/admin/index'
 import * as upload from '../controllers/upload'
 import * as bit from '../controllers/bit'
 import * as waitList from '../controllers/webapp/waitList'
-import * as assetLink from '../controllers/webapp/assetLink'
+// import * as assetLink from '../controllers/webapp/assetLink'
 import { authUser, authAdmin } from '../middlewares/auth.middleware'
 import uploadImageService from '../services/aws-s3'
 // import * as teamMember from '../controllers/teamMember'
-import * as liveStream from '../controllers/liveStream'
+// import * as liveStream from '../controllers/liveStream'
 import * as reviews from '../controllers/review'
 
 const router = Router();
 
-router.post('/api/auth/signin', signIn)
-router.post('/api/auth/verifyotp', verifyOTP)
+// router.post('/api/auth/signin', signIn)
+// router.post('/api/auth/verifyotp', verifyOTP)
+router.get('/api/auth/userExist', userExist)
 
 router.post('/api/users', createUser)
 router.post('/api/user/profile', authUser, profile)
@@ -55,15 +56,15 @@ router.post('/api/orders', authUser, orders.create)
 router.delete('/api/orders/:id', authUser, orders.destroy)
 router.put('/api/orders/:id', authUser, orders.update)
 
-router.post('/api/team', authUser, team.createTeam)
-router.get('/api/team', authUser, team.existingTeamList)
-router.get('/api/team/:id', authUser, team.showTeam)
+// router.post('/api/team', authUser, team.createTeam)
+// router.get('/api/team', authUser, team.existingTeamList)
+// router.get('/api/team/:id', authUser, team.showTeam)
 
 // router.patch('/api/team/:id', authUser, teamMember.addTeamMember)
 
-router.post('/api/livestream', authUser, liveStream.create)
-router.patch('/api/livestream/:id', authUser, liveStream.edit)
-router.get('/api/livestream', authUser, liveStream.index)
+// router.post('/api/livestream', authUser, liveStream.create)
+// router.patch('/api/livestream/:id', authUser, liveStream.edit)
+// router.get('/api/livestream', authUser, liveStream.index)
 
 router.post('/api/upload/video', authUser, uploadImageService.single('video'), upload.uploadVideo)
 
@@ -88,6 +89,6 @@ router.put('/admin/api/sellers/:id', authAdmin, admin.seller.update)
 router.post('/api/waitList', waitList.create)
 router.get('/admin/api/waitList', authAdmin, waitList.index)
 
-router.get('/.well-known/assetlinks.json', assetLink.index)
+// router.get('/.well-known/assetlinks.json', assetLink.index)
 
 export default router

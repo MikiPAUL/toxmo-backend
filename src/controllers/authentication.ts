@@ -55,6 +55,28 @@ const verifyOTP = async (req: Request, res: Response) => {
     }
 }
 
+const userExist = async (req: Request, res: Response) => {
+    try {
+        const phoneNumber = req.query.phoneNumber as string
+        if (!phoneNumber) throw new Error('Invalid phone number')
+        const user = await prisma.user.findUnique({
+            where: {
+                phoneNumber
+            }
+        })
+        if (!user) return res.json({
+            validUser: false,
+            token: ""
+        })
+        const token = generateToken(user.id, user.randomInt)
+        res.json({ validUser: true, token })
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to verify user phone number' })
+    }
+}
+
 const signOut = async (req: Request, res: Response) => {
     try {
         await prisma.user.update({
@@ -77,5 +99,6 @@ const signOut = async (req: Request, res: Response) => {
 export {
     signIn,
     verifyOTP,
+    userExist,
     signOut
 }
