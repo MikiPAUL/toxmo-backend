@@ -2,18 +2,13 @@ import { Request, Response } from 'express'
 import currentUser from '../lib/utils/getCurrentUser'
 import { orderParams } from '../lib/validations/order'
 import prisma from '../models/order'
-import { TeamStatus, OrderStatus, PurchaseType } from "@prisma/client";
-import teamMemberPrisma from '../models/TeamMember'
-import productPrisma from '../models/product'
-import teamPrisma from '../models/team'
+import { OrderStatus } from "@prisma/client"
 import { IOrderDetails } from 'order';
 
 const serializeOrder = (order: IOrderDetails) => {
     const { team, ...orderDetail } = order
     return {
-        ...orderDetail,
-        expireAt: team?.expireAt || null,
-        teamMemberCount: team?._count.teamMembers || null
+        ...orderDetail
     }
 }
 
@@ -26,78 +21,57 @@ const create = async (req: Request, res: Response) => {
         if (!orderRequest.success) {
             return res.status(422).json({ error: "Unable to create order" })
         }
-        const orderDetails = orderRequest.data.order;
-        const { orderId } = await prisma.$transaction(async (prisma) => {
-            const productStockQuantity = await prisma.product.findUniqueOrThrow({
-                where: {
-                    id: orderDetails.productId
-                },
-                select: {
-                    stockQuantity: true,
-                    seller: {
-                        select: {
-                            shopOpen: true
+        const { sellerId, totalPrice, products, cartOrder } = orderRequest.data.order;
+
+        if (cartOrder) {
+            const order = await prisma.$transaction(async (tx) => {
+                // delete the cart
+                await tx.cart.deleteMany({
+                    where: {
+                        userId: req.userId,
+                        product: {
+                            sellerId
                         }
                     }
-                }
-            })
-            if (!productStockQuantity.seller.shopOpen) throw new Error('Shop is closed currently')
-            if (!productStockQuantity || productStockQuantity.stockQuantity < orderDetails.quantity) throw new Error('Out of stock')
-                
-            const order = await prisma.order.add(user.id, orderDetails)
-            await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
-            const teamCount = await prisma.teamMember.count({
-                where: {
-                    teamId: orderDetails.teamId,
-                    userId: req.userId
-                }
-            })
-            const teamMemberCount = await prisma.teamMember.count({ where: { teamId: orderDetails.teamId } })
-            if (teamCount === 1 && teamMemberCount > 1) throw new Error('Already joined this team!!!')
-            if (orderDetails.teamId && teamCount == 0) {
-                const team = await prisma.team.findUnique({
-                    where: {
-                        id: orderDetails.teamId
+                })
+                return tx.order.create({
+                    data: {
+                        totalPrice,
+                        orderStatus: OrderStatus.orderConfirmed,
+                        sellerId,
+                        userId: req.userId,
+                        OrderItem: {
+                            create: products
+                        }
                     },
                     select: {
-                        id: true,
-                        Product: {
+                        totalPrice: true, orderStatus: true, createdAt: true,
+                        OrderItem: {
                             select: {
-                                id: true,
-                                teamSize: true
+                                Product: {
+                                    select: {
+                                        name: true
+                                    }
+                                }
                             }
                         }
                     }
-                });
-
-                if (!team || !team.Product) throw new Error('Unable to join the team')
-                await teamMemberPrisma.teamMember.addTeamMember(orderDetails.teamId, req.userId);
-
-                const teamMemberCount = await teamPrisma.team.teamMembersCount(orderDetails.teamId);
-                const maxTeamCapacity = team.Product.teamSize;
-
-                if (teamMemberCount?._count.teamMembers === maxTeamCapacity) {
-                    await teamPrisma.team.update({
-                        where: {
-                            id: team.id
-                        },
-                        data: {
-                            teamStatus: TeamStatus.teamConfirmed
-                        }
-                    })
-                    await prisma.order.updateOrderStatus({ teamId: team.id, status: OrderStatus.orderConfirmed })
+                })
+            })
+            return res.json({ order })
+        }
+        const order = await prisma.order.create({
+            data: {
+                totalPrice,
+                orderStatus: OrderStatus.orderConfirmed,
+                sellerId,
+                userId: req.userId,
+                OrderItem: {
+                    create: products
                 }
             }
-            if (orderDetails.purchaseType == PurchaseType.individual) {
-                await prisma.order.updateOrderStatus({ orderId: order.id, status: OrderStatus.orderConfirmed })
-            }
-            return { orderId: order.id }
-        });
-        const order = (await prisma.order.orderDetails([orderId])).at(0)
-        if (!order) {
-            return res.status(422).json({ error: "Unable to create order" })
-        }
-        res.status(201).json({ order: serializeOrder(order) })
+        })
+        res.json({ order })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -107,55 +81,8 @@ const create = async (req: Request, res: Response) => {
 
 const index = async (req: Request, res: Response) => {
     try {
-        const user = await currentUser(req)
-        const orderStatus = req.query.orderStatus
-        if (!user) return res.status(401).json({ error: "Unable to find the user" })
-        const orderReviews: Map<number, boolean> = new Map()
+        const orderStatus = req.query.OrderStatus as string
 
-        if (orderStatus === 'productDelivered') {
-            const orderIds = (await prisma.order.findMany({
-                where: {
-                    userId: user.id,
-                    orderStatus: OrderStatus.productDelivered
-                },
-                select: {
-                    id: true, review: true
-                },
-                orderBy: {
-                    id: 'desc'
-                }
-            })).flatMap(order => {
-                orderReviews.set(order.id, order.review !== null)
-                return order.id
-            })
-            const orders = await prisma.order.orderDetails(orderIds)
-            return res.status(200).json({
-                orders: orders.map(order => {
-                    return { ...serializeOrder(order), hasReview: orderReviews.get(order.id) }
-                })
-            })
-        }
-        const orderIds = (await prisma.order.findMany({
-            where: {
-                userId: user.id,
-                NOT: {
-                    orderStatus: OrderStatus.productDelivered
-                }
-            },
-            select: {
-                id: true, review: true
-            }
-        })).flatMap(order => {
-            orderReviews.set(order.id, order.review !== null)
-            return order.id
-        })
-        const orders = await prisma.order.orderDetails(orderIds)
-
-        res.status(200).json({
-            orders: orders.map(order => {
-                return { ...serializeOrder(order), hasReview: orderReviews.get(order.id) }
-            })
-        })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -165,28 +92,7 @@ const index = async (req: Request, res: Response) => {
 
 const update = async (req: Request, res: Response) => {
     try {
-        const orderId = req.params.id as string
-        const orderStatus = req.query.orderStatus as string
 
-        const orderDetail = await prisma.order.findUnique({
-            where: {
-                id: parseInt(orderId)
-            },
-            select: {
-                orderStatus: true, Product: {
-                    select: {
-                        sellerId: true
-                    }
-                }
-            }
-        })
-        if (orderDetail?.Product?.sellerId !== req.userId || orderDetail.orderStatus !== OrderStatus.orderConfirmed
-            || orderStatus !== OrderStatus.productDelivered) {
-            throw new Error('Invalid order status')
-        }
-
-        const order = await prisma.order.updateOrderStatus({ orderId: parseInt(orderId), status: orderStatus })
-        res.status(200).json({ order })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })
@@ -205,10 +111,31 @@ const update = async (req: Request, res: Response) => {
 // }
 
 const destroy = async (req: Request, res: Response) => {
-    const user = await currentUser(req)
-    if (!user) return res.status(422).json({ error: "Unable to find the user" })
-
-
+    try {
+        const id = req.params.id
+        const order = await prisma.order.findUnique({
+            where: {
+                id: parseInt(id)
+            },
+            select: {
+                createdAt: true
+            }
+        })
+        if (!order) throw new Error('Not found')
+        const timeNow = new Date()
+        const timeDifference = (timeNow.getTime() - order.createdAt.getTime()) / 1000
+        if (timeDifference > 180) throw new Error('Order cannot be cancelled')
+        await prisma.order.delete({
+            where: {
+                id: parseInt(id)
+            }
+        })
+        res.sendStatus(204)
+    }
+    catch (e) {
+        if (e instanceof Error) res.status(422).json({ error: e.message })
+        else res.status(422).json({ error: 'Unable to cancel order' })
+    }
 }
 
 export {

@@ -18,7 +18,7 @@ const prisma = new PrismaClient().$extends({
                     select: {
                         id: true, createdAt: true, product: {
                             select: {
-                                id: true, teamPrice: true,
+                                id: true,
                                 seller: {
                                     select: {
                                         id: true, brandName: true

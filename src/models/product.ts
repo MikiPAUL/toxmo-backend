@@ -20,8 +20,6 @@ const prisma = new PrismaClient().$extends({
             async add(createParams: {
                 name: string,
                 price: number,
-                teamPrice: number,
-                teamSize: number,
                 sellerId: number,
                 stockQuantity: number
             }) {

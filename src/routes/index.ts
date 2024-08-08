@@ -1,10 +1,11 @@
 import { Router } from 'express'
-import { signIn, signOut, verifyOTP, userExist } from '../controllers/authentication'
+import { signOut, userExist } from '../controllers/authentication'
 import *  as products from '../controllers/product'
 import { applyToSell, createUser, profile, editProfile } from '../controllers/user'
 import * as seller from '../controllers/seller'
 import * as categories from '../controllers/category'
 import * as orders from '../controllers/order'
+import * as carts from '../controllers/cart'
 import * as relationships from '../controllers/relationship'
 // import * as team from '../controllers/team'
 import * as admin from '../controllers/admin/index'
@@ -32,7 +33,7 @@ router.post('/api/seller', authUser, applyToSell)
 router.get('/api/seller/:id/details', authUser, seller.shopDetails)
 router.get('/api/seller/:id/orders', authUser, seller.shopOrders)
 router.get('/api/seller/:id/reviews', authUser, seller.shopReviews)
-router.get('/api/seller/:id/live', authUser, seller.shopLive)
+// router.get('/api/seller/:id/live', authUser, seller.shopLive)
 router.patch('/api/seller/:id', authUser, seller.update)
 router.get('/api/me', authUser, profile)
 
@@ -40,10 +41,11 @@ router.post('/api/user/follow', authUser, relationships.followUser)
 router.get('/api/user/:id/relationship', authUser, relationships.relationshipInfo)
 
 router.get('/api/products', authUser, products.index)
-router.get('/api/products/:id', authUser, products.show)
+// router.get('/api/products/:id', authUser, products.show)
 router.put('/api/products/:id', authUser, products.update)
 router.post('/api/products', authUser, products.create)
-router.get('/api/products/:id/reviews', authUser, products.reviews);
+router.delete('/api/products/:id', authUser, products.destroy)
+// router.get('/api/products/:id/reviews', authUser, products.reviews);
 
 router.post('/api/reviews', authUser, reviews.create)
 
@@ -56,15 +58,11 @@ router.post('/api/orders', authUser, orders.create)
 router.delete('/api/orders/:id', authUser, orders.destroy)
 router.put('/api/orders/:id', authUser, orders.update)
 
-// router.post('/api/team', authUser, team.createTeam)
-// router.get('/api/team', authUser, team.existingTeamList)
-// router.get('/api/team/:id', authUser, team.showTeam)
-
-// router.patch('/api/team/:id', authUser, teamMember.addTeamMember)
-
-// router.post('/api/livestream', authUser, liveStream.create)
-// router.patch('/api/livestream/:id', authUser, liveStream.edit)
-// router.get('/api/livestream', authUser, liveStream.index)
+router.post('/api/cart/items', authUser, carts.addItem)
+router.get('/api/cart/items', authUser, carts.cartItems)
+router.get('/api/carts', authUser, carts.cartList)
+router.put('/api/cart/items/:id', authUser, carts.changeQuantity)
+router.delete('/api/cart/items/:id', authUser, carts.removeItem)
 
 router.post('/api/upload/video', authUser, uploadImageService.single('video'), upload.uploadVideo)
 

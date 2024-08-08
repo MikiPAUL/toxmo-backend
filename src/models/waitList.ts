@@ -1,4 +1,4 @@
-import { PrismaClient, PurchaseType, OrderStatus } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient().$extends({
     model: {

@@ -11,38 +11,32 @@ const index = async (req: Request, res: Response) => {
             orderStatus === OrderStatus.productDelivered || orderStatus === OrderStatus.productShipped) {
             orders = await prisma.seller.findMany({
                 where: {
-                    products: {
+                    Order: {
                         some: {
-                            orders: {
-                                some: {
-                                    orderStatus
-                                }
-                            }
+                            orderStatus
                         }
                     }
                 },
                 select: {
-                    id: true, brandName: true, products: {
+                    id: true, brandName: true, createdAt: true, Order: {
                         select: {
-                            orders: {
-                                where: {
-                                    orderStatus
-                                },
+                            id: true, totalPrice: true, OrderItem: {
                                 select: {
-                                    id: true, createdAt: true, quantity: true, purchaseType: true, orderStatus: true, totalPrice: true,
-                                    user: {
-                                        select: {
-                                            username: true, phoneNumber: true, address: true
-                                        }
-                                    },
+                                    quantity: true,
                                     Product: {
                                         select: {
-                                            name: true, imageLink: true
+                                            name: true
                                         }
                                     }
                                 }
+                            },
+                            user: {
+                                include: { address: true },
+                                select: {
+                                    username: true, phoneNumber: true,
+                                }
                             }
-                        }
+                        },
                     }
                 }
             })
@@ -50,38 +44,31 @@ const index = async (req: Request, res: Response) => {
         else {
             orders = await prisma.seller.findMany({
                 select: {
-                    id: true, brandName: true, products: {
+                    id: true, brandName: true, createdAt: true, Order: {
                         select: {
-                            orders: {
+                            id: true, totalPrice: true, OrderItem: {
                                 select: {
-                                    id: true, createdAt: true, quantity: true, purchaseType: true, orderStatus: true,
-                                    user: {
-                                        select: {
-                                            username: true, phoneNumber: true, address: true
-                                        }
-                                    },
+                                    quantity: true,
                                     Product: {
                                         select: {
-                                            name: true, price: true, teamPrice: true
+                                            name: true
                                         }
                                     }
                                 }
+                            },
+                            user: {
+                                include: { address: true },
+                                select: {
+                                    username: true, phoneNumber: true,
+                                }
                             }
-                        }
+                        },
                     }
                 }
             })
         }
 
-        const modifiedOrders = orders.map((shopOrder) => {
-            return {
-                id: shopOrder.id,
-                sellerStoreName: shopOrder.brandName,
-                orders: shopOrder.products.flatMap(product => product.orders)
-            }
-        })
-
-        res.status(200).json({ orders: modifiedOrders })
+        res.status(200).json({ orders })
     }
     catch (e) {
         if (e instanceof Error) res.status(422).json({ error: e.message })

@@ -60,18 +60,18 @@ const prisma = new PrismaClient().$extends({
                     }
                 })
             },
-            async liveStreamingSeller() {
-                return prisma.liveStream.findMany({
-                    where: {
-                        expiresAt: {
-                            gt: new Date()
-                        }
-                    },
-                    select: {
-                        sellerId: true
-                    }
-                })
-            },
+            // async liveStreamingSeller() {
+            //     return prisma.liveStream.findMany({
+            //         where: {
+            //             expiresAt: {
+            //                 gt: new Date()
+            //             }
+            //         },
+            //         select: {
+            //             sellerId: true
+            //         }
+            //     })
+            // },
             async getAddress(sellerId: number) {
                 return prisma.seller.findUnique({
                     where: {

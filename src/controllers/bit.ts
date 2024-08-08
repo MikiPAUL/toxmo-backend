@@ -140,7 +140,6 @@ const show = async (req: Request, res: Response) => {
                 thumbnailUrl: generateUrl(bit.videoMetaData.thumbnailUrl),
                 createdAt: bit.createdAt,
                 productId: bit.product.id,
-                price: bit.product.teamPrice,
                 sellerId: bit.product.seller.id,
                 brandName: bit.product.seller.brandName,
                 likes: bit._count.VideoLike,

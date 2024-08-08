@@ -6,19 +6,19 @@ import { IUser } from '../lib/types/user'
 import { DeliveryType } from '@prisma/client'
 import { generateToken } from '../lib/utils/authToken';
 
-const validateDeliveryOptions = (
-    deliveryType: DeliveryType,
-    deliveryFee: number | null,
-    thirdPartyDelivery: string | null,
-    deliveryRadius: number | null
-) => {
-    const validOptions = {
-        [DeliveryType.noDelivery]: !deliveryFee && !thirdPartyDelivery,
-        [DeliveryType.ownDelivery]: deliveryFee && !thirdPartyDelivery && deliveryRadius,
-        [DeliveryType.thirdPartyDelivery]: !deliveryFee && thirdPartyDelivery
-    }
-    if (!validOptions[deliveryType]) throw new Error('Invalid delivery options')
-}
+// const validateDeliveryOptions = (
+//     deliveryType: DeliveryType,
+//     deliveryFee: number | null,
+//     thirdPartyDelivery: string | null,
+//     deliveryRadius: number | null
+// ) => {
+//     const validOptions = {
+//         [DeliveryType.noDelivery]: !deliveryFee && !thirdPartyDelivery,
+//         [DeliveryType.ownDelivery]: deliveryFee && !thirdPartyDelivery && deliveryRadius,
+//         [DeliveryType.thirdPartyDelivery]: !deliveryFee && thirdPartyDelivery
+//     }
+//     if (!validOptions[deliveryType]) throw new Error('Invalid delivery options')
+// }
 
 const createUser = async (req: Request, res: Response) => {
     try {
@@ -74,20 +74,25 @@ const applyToSell = async (req: Request, res: Response) => {
         const sellerRequest = sellerParams.safeParse(req.body);
         if (!sellerRequest.success) return res.status(422).json({ error: 'Invalid request params' })
 
-        const { address, ...shopDetails } = sellerRequest.data.seller
-        validateDeliveryOptions(shopDetails.deliveryType, shopDetails.deliveryFee, shopDetails.thirdPartyLink, shopDetails.deliveryRadius)
+        const { address, deliveryOptions, ...shopDetails } = sellerRequest.data.seller
         const seller = await prisma.seller.create({
             data: {
                 id: req.userId,
                 ...shopDetails,
+                deliveryType: DeliveryType.ownDelivery,
                 address: {
                     create: {
                         ...address
                     }
+                },
+                DeliveryOption: {
+                    createMany: {
+                        data: deliveryOptions
+                    }
                 }
             },
             include: {
-                address: true
+                address: true, DeliveryOption: true
             }
         })
         res.status(201).json({ seller })

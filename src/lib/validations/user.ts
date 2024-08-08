@@ -16,6 +16,12 @@ const userParams = z.object({
     })
 })
 
+const deliveryOptionSchema = z.object({
+    minimumPrice: z.number(),
+    deliveryFee: z.number(),
+    deliveryRadius: z.number()
+})
+
 const sellerParams = z.object({
     seller: z.object({
         brandName: z.string(),
@@ -24,11 +30,8 @@ const sellerParams = z.object({
         type: z.string(),
         categoryId: z.number(),
         email: z.string(),
-        deliveryType: z.enum(['noDelivery', 'thirdPartyDelivery', 'ownDelivery']),
         address: addressParams,
-        deliveryFee: z.number().nullable(),
-        thirdPartyLink: z.string().nullable(),
-        deliveryRadius: z.number().nullable()
+        deliveryOptions: z.array(deliveryOptionSchema)
     })
 })
 

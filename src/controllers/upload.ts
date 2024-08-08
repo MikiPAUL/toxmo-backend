@@ -14,8 +14,8 @@ const uploadImage = async (req: HandleRequest, res: Response) => {
         if (!file) throw new Error('Unable upload image, please try again');
         const id = parseInt(req.params.id), resourceType = req.query.resourceType
 
-        if (resourceType === 'product' || resourceType === 'liveStream') {
-            const field = (resourceType === 'product' ? 'imageLink' : 'thumbnail')
+        if (resourceType === 'product') {
+            const field = 'imageLink'
             const response = await prisma[resourceType].update({
                 where: {
                     id

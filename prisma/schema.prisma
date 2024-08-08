@@ -18,7 +18,6 @@ model User {
   gender      Gender?
   orders      Order[]
   seller      Seller?
-  teamMembers TeamMember[]
   followers   Relationship[] @relation("follower")
   followings  Relationship[] @relation("following")
   createdAt   DateTime       @default(now())
@@ -43,8 +42,8 @@ model Address {
 }
 
 model Seller {
-  id             Int          @id
-  active         Boolean      @default(false)
+  id             Int              @id
+  active         Boolean          @default(false)
   brandName      String
   bio            String
   contactNumber  String
@@ -52,17 +51,26 @@ model Seller {
   type           String
   categoryId     Int
   deliveryType   DeliveryType
-  deliveryFee    Int?
-  deliveryRadius Int?
-  thirdPartyLink String?
-  shopOpen       Boolean      @default(false)
+  shopOpen       Boolean          @default(false)
   products       Product[]
-  category       Category     @relation(fields: [categoryId], references: [id])
-  user           User         @relation(fields: [id], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  LiveStream     LiveStream[]
+  category       Category         @relation(fields: [categoryId], references: [id])
+  user           User             @relation(fields: [id], references: [id])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   address        Address?
+  DeliveryOption DeliveryOption[]
+  Order          Order[]
+}
+
+model DeliveryOption {
+  id             Int    @id @default(autoincrement())
+  sellerId       Int
+  seller         Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  minimumPrice   Float
+  deliveryFee    Int
+  deliveryRadius Int
+
+  @@index([sellerId, deliveryRadius])
 }
 
 model Relationship {
@@ -86,92 +94,69 @@ model Category {
 }
 
 model Product {
-  id            Int      @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   name          String
   description   String?
   price         Float
   stockQuantity Int
   imageLink     String?
-  teamPrice     Float
-  teamSize      Int
   sellerId      Int
-  teams         Team[]
-  orders        Order[]
-  reviews       Review[]
-  seller        Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  seller        Seller      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   Video         Video[]
+  Cart          Cart[]
+  OrderItem     OrderItem[]
+}
+
+model Cart {
+  productId Int
+  userId    Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@id([productId, userId])
 }
 
 model Review {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
+  orderId     Int
   productId   Int
-  orderId     Int?     @unique
   userId      Int
   rating      Float
   description String?
-  order       Order?   @relation(fields: [orderId], references: [id])
-  product     Product  @relation(fields: [productId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+  orderItem   OrderItem @relation(fields: [orderId, productId], references: [orderId, productId])
+  user        User      @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-model Team {
-  id          Int          @id @default(autoincrement())
-  description String?
-  code        String?
-  teamLink    String?
-  expireAt    DateTime     @default(dbgenerated("(now() + '30 minutes'::interval minute)"))
-  productId   Int?
-  teamStatus  TeamStatus   @default(teamCreated)
-  teamMembers TeamMember[]
-  Product     Product?     @relation(fields: [productId], references: [id])
-  Order       Order[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
-
-model TeamMember {
-  id        Int      @id @default(autoincrement())
-  teamId    Int
-  userId    Int
-  team      Team     @relation(fields: [teamId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([teamId, userId])
+  @@unique([orderId, productId])
 }
 
 model Order {
-  id           Int          @id @default(autoincrement())
-  userId       Int
-  productId    Int
-  quantity     Int          @default(1)
-  totalPrice   Float
-  teamId       Int?
-  purchaseType PurchaseType @default(team)
-  orderStatus  OrderStatus  @default(orderPlaced)
-  team         Team?        @relation(fields: [teamId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
-  Product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  review       Review?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  totalPrice  Float
+  orderStatus OrderStatus @default(orderPlaced)
+  user        User        @relation(fields: [userId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  sellerId    Int
+  Seller      Seller      @relation(fields: [sellerId], references: [id])
+  OrderItem   OrderItem[]
 }
 
-model LiveStream {
-  id          Int      @id @default(autoincrement())
-  meetId      String
-  description String?
-  thumbnail   String?
-  sellerId    Int
-  expiresAt   DateTime @default(dbgenerated("(now() + '60 minutes'::interval minute)"))
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  Seller      Seller   @relation(fields: [sellerId], references: [id])
+model OrderItem {
+  orderId   Int
+  productId Int
+  quantity  Int     @default(1)
+  Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  Order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Review    Review?
+
+  @@id([orderId, productId])
 }
 
 model Video {
@@ -241,6 +226,7 @@ enum OrderStatus {
   productShipped
   productDelivered
   orderExpired
+  orderCancelled
 }
 
 enum DeliveryType {

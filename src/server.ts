@@ -2,7 +2,7 @@ import express from 'express'
 import router from './routes/index'
 import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
-import { weeklyReportScheduler } from './lib/jobs/updateTeamStatus'
+// import { weeklyReportScheduler } from './lib/jobs/updateTeamStatus'
 import winston from 'winston'
 // import morgan from 'morgan'
 import morganBody from 'morgan-body'
@@ -35,7 +35,7 @@ declare global {
 
 const app = express()
 
-weeklyReportScheduler.start()
+// weeklyReportScheduler.start()
 
 const corsOptions = {
     AccessControlAllowOrigin: '*',

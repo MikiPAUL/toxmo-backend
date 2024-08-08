@@ -1,12 +1,17 @@
 import { z } from 'zod'
 
+const productSchema = z.object({
+    productId: z.number(),
+    quantity: z.number()
+})
+
 const orderParams = z.object({
     order: z.object({
-        productId: z.number(),
-        quantity: z.number(),
+        sellerId: z.number(),
+        products: z.array(productSchema),
         totalPrice: z.number(),
-        purchaseType: z.enum(['team', 'individual']),
-        teamId: z.number().optional()
+        cartOrder: z.boolean()
+        // teamId: z.number().optional()
     })
 })
 

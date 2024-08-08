@@ -1,11 +1,11 @@
-import { PrismaClient, PurchaseType } from "@prisma/client";
+// import { PrismaClient, PurchaseType } from "@prisma/client";
 
-const prisma = new PrismaClient().$extends({
-    model: {
-        liveStream: {
+// const prisma = new PrismaClient().$extends({
+//     model: {
+//         liveStream: {
 
-        }
-    }
-})
+//         }
+//     }
+// })
 
-export default prisma
+// export default prisma

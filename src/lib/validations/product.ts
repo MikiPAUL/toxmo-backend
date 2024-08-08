@@ -5,8 +5,6 @@ const productParams = z.object({
         name: z.string(),
         price: z.number(),
         description: z.string(),
-        teamPrice: z.number(),
-        teamSize: z.number(),
         stockQuantity: z.number()
     })
 })
@@ -16,8 +14,6 @@ const productUpdateParams = z.object({
         name: z.string().optional(),
         price: z.number().optional(),
         description: z.string().optional(),
-        teamPrice: z.number().optional(),
-        teamSize: z.number().optional(),
         stockQuantity: z.number().optional()
     })
 })

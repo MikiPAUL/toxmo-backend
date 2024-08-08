@@ -40,15 +40,17 @@ const shopOrders = async (req: Request, res: Response) => {
         if (orderStatus === 'orderConfirmed' || orderStatus === 'productDelivered') {
             const orders = await prisma.order.findMany({
                 where: {
-                    Product: {
-                        sellerId: parseInt(userId)
-                    },
+                    sellerId: parseInt(userId),
                     orderStatus
                 },
                 include: {
-                    Product: {
+                    OrderItem: {
                         select: {
-                            id: true, imageLink: true, name: true, description: true
+                            Product: {
+                                select: {
+                                    id: true, imageLink: true, name: true, description: true
+                                }
+                            }
                         }
                     },
                     user: {
@@ -78,31 +80,10 @@ const shopOrders = async (req: Request, res: Response) => {
     }
 }
 
-const shopLive = async (req: Request, res: Response) => {
-    try {
-        const sellerId = req.params.id as string
-
-        const liveStream = await prisma.liveStream.findFirst({
-            where: {
-                sellerId: parseInt(sellerId),
-                expiresAt: {
-                    gt: new Date()
-                }
-            }
-        })
-
-        res.status(200).json({ liveStream })
-    }
-    catch (e) {
-        if (e instanceof Error) res.status(422).json({ error: e.message })
-        else res.status(422).json({ error: 'Error while fetching shop orders' })
-    }
-}
-
 const update = async (req: Request, res: Response) => {
     try {
         const status = req.query.status as string
-        console.log(status === 'open')
+        // console.log(status === 'open')
         const shopStatus = await prisma.seller.update({
             where: {
                 id: req.userId
@@ -126,6 +107,5 @@ export {
     shopReviews,
     shopDetails,
     shopOrders,
-    shopLive,
     update
 }
