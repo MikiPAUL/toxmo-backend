@@ -43,7 +43,7 @@ const create = async (req: Request, res: Response) => {
             })
             if (!productStockQuantity.seller.shopOpen) throw new Error('Shop is closed currently')
             if (!productStockQuantity || productStockQuantity.stockQuantity < orderDetails.quantity) throw new Error('Out of stock')
-                
+
             const order = await prisma.order.add(user.id, orderDetails)
             await productPrisma.product.reduceStockQuantity(orderDetails.productId, orderDetails.quantity)
             const teamCount = await prisma.teamMember.count({

@@ -6,7 +6,7 @@ import * as seller from '../controllers/seller'
 import * as categories from '../controllers/category'
 import * as orders from '../controllers/order'
 import * as relationships from '../controllers/relationship'
-// import * as team from '../controllers/team'
+import * as team from '../controllers/team'
 import * as admin from '../controllers/admin/index'
 import * as upload from '../controllers/upload'
 import * as bit from '../controllers/bit'
@@ -14,7 +14,7 @@ import * as waitList from '../controllers/webapp/waitList'
 // import * as assetLink from '../controllers/webapp/assetLink'
 import { authUser, authAdmin } from '../middlewares/auth.middleware'
 import uploadImageService from '../services/aws-s3'
-// import * as teamMember from '../controllers/teamMember'
+import * as teamMember from '../controllers/teamMember'
 // import * as liveStream from '../controllers/liveStream'
 import * as reviews from '../controllers/review'
 
@@ -56,11 +56,11 @@ router.post('/api/orders', authUser, orders.create)
 router.delete('/api/orders/:id', authUser, orders.destroy)
 router.put('/api/orders/:id', authUser, orders.update)
 
-// router.post('/api/team', authUser, team.createTeam)
-// router.get('/api/team', authUser, team.existingTeamList)
-// router.get('/api/team/:id', authUser, team.showTeam)
+router.post('/api/team', authUser, team.createTeam)
+router.get('/api/team', authUser, team.existingTeamList)
+router.get('/api/team/:id', authUser, team.showTeam)
 
-// router.patch('/api/team/:id', authUser, teamMember.addTeamMember)
+router.patch('/api/team/:id', authUser, teamMember.addTeamMember)
 
 // router.post('/api/livestream', authUser, liveStream.create)
 // router.patch('/api/livestream/:id', authUser, liveStream.edit)
